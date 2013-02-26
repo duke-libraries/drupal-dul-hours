@@ -31,6 +31,10 @@ function dul_hours_fetch_events($calId, $service, $day_start, $num_events) {
 	$singleEvents = variable_get('dul_hours.single_events', TRUE);
 	$orderBy = 'startTime';
 
+	if (!isset($day_start)) {
+		$day_start = time();	// now
+	}
+
 	if (is_int($day_start)) {
 		// convert to date string format (perferred)
 		$timeMin = date('Y-m-d', $day_start) . 'T00:00:00-05:00';
