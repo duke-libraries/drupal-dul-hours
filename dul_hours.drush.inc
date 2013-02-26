@@ -70,7 +70,7 @@ function drush_dul_hours_dul_refresh_hours($library = NULL) {
 	require_once drupal_get_path('module', 'dul_hours') . '/dul_hours.calendar.inc';
 	$service = dul_hours_load_calendar_service();
 	$day_start = time();
-	$events = dul_hours_fetch_events($library->google_cal_id, $service, $day_start, $day_end);
+	$events = dul_hours_fetch_events($library->google_cal_id, $service, $day_start, 30);
 
 	drush_print_r($events);
 }
