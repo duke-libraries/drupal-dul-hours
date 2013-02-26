@@ -1,0 +1,8 @@
+name = Duke University Library Hours
+description = Provides pages and blocks to display library hours.
+package = Duke Libraries UI
+core = 7.x
+version = 1.0-alpha
+files[] = dul_hours.module
+files[] = dul_hours.calendar.inc
+

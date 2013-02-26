@@ -1,0 +1,209 @@
+<?php
+
+/**
+ * Implements hook_menu()
+ */
+function dul_hours_menu() {
+	$items['admin/config/library_hours'] = array(
+		'title'		=> 'Library Hours',
+		'description'	=> 'Adjust Library Hours display settings',
+		'position' => 'right',
+		'weight'	=> 5,
+		'page callback'	=> 'system_admin_menu_block_page',
+		'access arguments'	=> array('administer site configuration'),
+		'file' => 'system.admin.inc',
+		'file path' => drupal_get_path('module', 'system'),
+	);
+	$items['admin/config/library_hours/settings'] = array(
+		'title' => 'Settings',
+		'description' => 'Change settings for the Library Hours display',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('dul_hours_admin_settings'),
+		'access arguments' => array('administer site configuration'),
+		'type' => MENU_NORMAL_ITEM,
+		'file' => 'dul_hours.admin.inc',
+	);
+	$items['admin/config/library_hours/library'] = array(
+		'title' => t('Libraries'),
+		'description' => 'Manage the Library mappings',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('dul_hours_admin_library_default'),
+		'access arguments' => array('administer site configuration'),
+		'file' => 'dul_hours.admin.inc',
+		'type' => MENU_NORMAL_ITEM,
+	);
+	$items['admin/config/library_hours/library/add'] = array(
+		'title' => 'Add Library',
+		'description' => t('Add a library-to-Google Calendar mapping'),
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('dul_hours_admin_library_add_form'),
+		'access arguments' => array('administer site configuration'),
+		'file' => 'dul_hours.admin.inc',
+		'type' => MENU_DEFAULT_LOCAL_TASK,
+	);
+
+	return $items;
+}
+
+/**
+ * Implements hook_permission()
+ */
+function dul_hours_permission() {
+}
+
+/**
+ * Implements hook_cron()
+ * - purge old hours entries
+
+ * - fetch hours from Google feed for specific library calendar ID
+ * - store in hours database
+ */
+function dul_hours_cron() {
+}
+
+/**
+ * Implements hook_block_info()
+ *
+ * exposes the following block(s):
+ * 	- single_day
+ *	- upcoming days
+ */
+function dul_hours_block_info() {
+	$blocks['single_day'] = array(
+		'info'				=> t('Hours for Single Day'),
+		'cache'				=> DRUPAL_CACHE_PER_USER,
+		'visibility'	=> 0,
+	);
+	$blocks['upcoming_days'] = array(
+		'info'				=> t('Hours for Upcoming Days'),
+		'cache'				=> DRUPAL_CACHE_PER_USER,
+		'visibility'	=> 0,
+	);
+	return $blocks;
+}
+
+/**
+ * Implements hook_block_configure()
+ */
+function dul_hours_block_configure($delta) {
+	$form = array();
+
+	switch ($delta) {
+	case 'upcoming_days':
+		$libraries = dul_hours_get_libraries(TRUE);	// exclude PUBLIC library hours
+		$library_options = array();
+		foreach ($libraries as $library) {
+			$library_options[$library->library_id] = $library->library_name;
+		}
+		$form['upcoming_days_library'] = array(
+			'#type'					=> 'select',
+			'#title'				=> t('Display Hours for this Library'),
+			'#options'			=> $library_options,
+			'#default_value'	=> variable_get('upcoming_days_library'),
+		);
+		$form['upcoming_days_display_public'] = array(
+			'#type'					=> 'checkbox',
+			'#title'				=> t('Display the <strong>Duke Library Public Hours</strong> in this block'),
+			'#states'				=> array(
+				'visible'	=> array(
+					':input[name=upcoming_days_library]' => array('value' => t('perkins')),
+				),
+			),
+		);
+		$form['upcoming_days_count'] = array(
+			'#type'	 				=> 'textfield',
+			'#title'				=> t('Configure the number of days to display'),
+			'#size'					=> 4,
+			'#description'	=> t('Enter the number of days that will appear in the block.'),
+			'#default_value'	=> variable_get('upcoming_days_count', 4),
+		);
+		$start_options = array(
+			'current_day' => t('Current Day'),
+			'sunday' => t('Sunday - first day of week'),
+			'monday' => t('Monday - first day of work week'),
+		);
+		$form['upcoming_days_start_date'] = array(
+			'#type'					=> 'select',
+			'#title'				=> t('First day to display'),
+			'#description'	=> t('Determine what day appears first in the block display.'),
+			'#options'			=> $start_options,
+			'#default_value'	=> variable_get('upcoming_days_start_date', 'current_day'),
+		);
+		break;
+	}
+	return $form;
+}
+
+/**
+ * Implements hook_block_save()
+ */
+function dul_hours_block_save($delta = '', $edit = array()) {
+	switch ($delta) {
+		case 'upcoming_days':
+			variable_set('upcoming_days_count', (int)$edit['upcoming_days_count']);
+			variable_set('upcoming_days_start_date', $edit['upcoming_days_start_date']);
+			break;
+	}
+
+	return;
+}
+
+/**
+ * Implements hook_block_view()
+ */
+function dul_hours_block_view($delta='') {
+	switch ($delta) {
+
+	case 'upcoming_days':
+		// $library = variable_get('dul_hours.default_library', 'PERKINS');
+		// $library_name = _dul_hours_library_get_attr($library, 'name');
+		// $block['subject'] = $library_name . ' Hours';
+		// $block['content'] = dul_hours_block_content($delta);
+		// return $block;
+		break;
+
+	};
+
+	return '';
+}
+
+/**
+ * Return a list of libraries
+ */
+function dul_hours_get_libraries($exclude_public = FALSE) {
+	$query = db_select('duke_cal_library', 'l')
+		->fields('l');
+
+	if ($exclude_public) {
+		$query->condition('library_id', 'public', '<>');
+	}
+
+	$result = $query->execute();
+
+	$rows = array();
+	foreach ($result as $row) {
+		$rows[] = $row;
+	}
+	return $rows;
+}
+
+/**
+ * Delete hours events.
+ *
+ * @see drush_dul_hours_dul_refresh_hours()
+ */
+function dul_hours_delete_hours($thru, $from_drush = FALSE) {
+	if ($thru == NULL) {
+		$thru = time();
+	}
+
+	if ($from_drush) {
+		drush_print("called dul_hours_delete_hours...\n");
+	}
+
+	$num_deleted = db_delete('hours')
+	->condition('end_date', $thru, '<=')
+	->execute();
+
+	return $num_deleted;
+}

@@ -1,0 +1,117 @@
+<?php
+
+/**
+ * Implements hook_schema()
+ */
+function dul_hours_schema() {
+	$schema = array();
+
+	$schema['duke_cal_library'] = array(
+		'description' => 'Stores library information, including id, name and Google Calendar Id',
+		'fields' => array(
+			'lid' => array(
+				'type' => 'serial',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+			),
+			'library_id' => array(
+				'type' => 'varchar',
+				'length' => 15,
+				'not null' => TRUE,
+				'default' => '',
+			),
+			'library_name' => array(
+				'type' => 'varchar',
+				'length' => 255,
+				'not null' => TRUE,
+				'default' => '',
+			),
+			'google_cal_id' => array(
+				'type' => 'varchar',
+				'length' => 128,
+				'not null' => TRUE,
+				'default' => '',
+			),
+			'last_calendar_fetch' => array(
+				'type' => 'int',
+				'not null' => TRUE,
+				'unsigned' => TRUE,
+				'default' => 0,
+			),
+		),
+		'primary key' => array('lid'),
+		'indexes' => array(
+			'library_id' => array(array('library_id', 5)),
+		),
+	);
+
+	$schema['hours'] = array(
+		'description' => 'Stores calendar date entries',
+		'fields' => array(
+			'lid' => array(
+				'type' => 'int',
+				'not null' => TRUE,
+				'unsigned' => TRUE,
+				'default' => 0,
+			),
+			'start_date' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'default' => 0,
+			),
+			'end_date' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'default' => 0,
+			),
+			'event_title' => array(
+				'type' => 'varchar',
+				'length' => 128,
+				'not null' => TRUE,
+				'default' => '',
+			),
+		),
+		'foreign keys' => array(
+			'library' => array(
+				'table' => 'duke_cal_library',
+				'columns' => array('lid' => 'lid'),
+			),
+		),
+		'primary key' => array('lid', 'start_date'),
+	);
+
+	return $schema;
+}
+
+function dul_hours_install() {
+	$o = new stdClass();
+	$o->google_cal_id = 'gavudiri8870fu7oie7o8up7rk';
+	$o->library_id = 'perkins';
+	$o->library_name = 'Perkins/Bostock Libraries';
+	drupal_write_record('duke_cal_library', $o);
+
+	$o = new stdClass();
+	$o->google_cal_id = 'k1jgaoblhr60opsf5495g03s4o';
+	$o->library_id = 'public';
+	$o->library_name = t('General Public Hours');
+	drupal_write_record('duke_cal_library', $o);
+
+	$o = new stdClass();
+	$o->google_cal_id = 'i97kj6o04evmd28rn52usc3lss';
+	$o->library_id = 'rbmscl';
+	$o->library_name = t('David M. Rubenstein & Manuscript Library');
+	drupal_write_record('duke_cal_library', $o);
+}
+
+/** 
+ * Implements hook_uninstall()
+ */
+function dul_hours_uninstall() {
+	// unset variables
+	variable_del('upcoming_days_count');
+	variable_del('upcoming_days_start_date');
+	variable_del('dul_hours.default_library');
+	variable_del('dul_hours.default_num_events');
+}

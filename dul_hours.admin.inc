@@ -1,0 +1,82 @@
+<?php
+
+/**
+ * @file
+ * Administrative tasks, pages and/or forms to manage
+ * the Library Hours interface
+ */
+
+/**
+ * Form builder. Configure annotations.
+ *
+ * @ingroup forms
+ * @see system_settings_form()
+ */
+function dul_hours_admin_settings() {
+	// get the list of libraries
+	$libraries = dul_hours_get_libraries();
+	$options = array();
+	foreach ($libraries as $library) {
+		$options[$library->library_id] = $library->library_name;
+	}
+
+	$form['dul_hours_default_library'] = array(
+		'#type' => 'select',
+		'#title' => t('Library for which to display hours on front page'),
+		'#options' => $options,
+		'#default_value' => variable_get('dul_hours.default_library', ''),
+		'#description' => t('When the hours are displayed as a block, this will be the library used.'),
+	);
+
+	$form['dul_hours_default_num_events'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Default Number of Events to fetch for blocks'),
+		'#default_value' => variable_get('dul_hours.default_num_events', ''),
+		'#required' => TRUE,
+		'#size' => 4,
+	);
+
+	$default_single_events = variable_get('dul_hours.default_single_events', TRUE) ? '1' : '0';
+	$form['dul_hours_default_single_events'] = array(
+		'#type' => 'checkbox',
+		'#title' => t('Fetch single events per day'),
+		'#default_value' => $default_single_events,
+		'#description' => t('Recommened'),
+	);
+
+	// Originally, I thought having a "refresh interval" setting 
+	// to update the hours data would be a good, logical idea.  
+	// However, a potential site response 'lag' could occur when a user 
+	// visits the home page (or any page) during a time when a 
+	// database refresh took place.
+	//
+	// This, of course, would degrade our usability factor.
+	// So, a solution would install a 'true' cron job on the VMs
+	// that would invoke a 'drush' command to refresh the hours data
+	// preferrably after hours.
+
+	$form['#submit'][] = 'dul_hours_admin_settings_submit';
+	return system_settings_form($form);
+}
+
+/**
+ * Process dul_hours settings submission.
+ */
+function dul_hours_admin_settings_submit($form, $form_state) {
+	variable_set('dul_hours.default_library', $form_state['values']['dul_hours_default_library']);
+	variable_set('dul_hours.default_num_events', $form_state['values']['dul_hours_default_num_events']);
+}
+
+/**
+ * Form builder for Library listing
+ *
+ * @ingroup forms
+ * @see drupal_get_form
+ */
+function dul_hours_admin_library_default() {
+	return array(
+		'page_title' => array(
+			'#markup' => '<h3>Available Libraries</h3>',
+		),
+	);
+}
