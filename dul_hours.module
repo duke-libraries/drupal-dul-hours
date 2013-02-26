@@ -207,3 +207,72 @@ function dul_hours_delete_hours($thru, $from_drush = FALSE) {
 
 	return $num_deleted;
 }
+
+/**
+ * Creates an 'hours' object that can be stored in the database.
+ */
+function dul_hours_create_hours_record($library, $eventItem) {
+	$record = new stdClass();
+
+	$record->lid = $library->lid;
+	if (!isset($eventItem)) {
+		return $record;
+	}
+
+	if (isset($eventItem->start->dateTime)) {
+		$convertedTime = strtotime($eventItem->start->dateTime);
+	} else {
+		$convertedTime = strtotime($eventTime->start->date);
+	}
+
+	$currentDate = getdate();
+	$record->isCurrentDay = ((int) date('z', $convertedTime) == (int) $currentDate['yday']);
+	$record->libraryDate = array(
+		'dayAndDate' => date('D n/j', $convertedTime),
+		'shortDay' => date('D', $convertedTime),
+		'longDay' => date('l', $convertedTime),
+		'dateStr' => date('n/j', $convertedTime),
+		'wday' => (int)date('w', $convertedTime),
+		'yday' => (int)date('z', $convertedTime),
+	);
+	$record->timestamp = $convertedTime;
+
+	if (preg_match('/^(lilly|public|rubenstein|perkins|music):/i', $eventItem->summary) == 1) {
+		$record->hours = preg_replace('/^(lilly|public|rubenstein|perkins|music): /i', '', $eventItem->summary);
+		$record->hours_encoded = str_replace('-', ' &ndash; ', $record->hours);
+		$record->allDay = preg_match('/24 hours/i', $record->hours) == 1;
+	} elseif (preg_match('/closed/i', $eventTime->summary) == 1) {
+		$record->hours = $record->hours_encoded = 'CLOSED';
+		$record->allDay = TRUE;
+		$record->libraryClosed = TRUE;
+	} elseif (isset($eventItem->start->dateTime)) {
+		$startDateTime = strtotime($eventItem->start->dateTime);
+		$endDateTime = strtotime($eventItem->end->dateTime);
+		$record->start = $startDateTime;
+		$record->end = $endDateTime;
+
+		if (preg_match('/24 hours/i', $eventItem->summary) == 1) {
+			$record->hours = $record->hours_encoded = 'Open 24 hours';
+			$record->allDay = TRUE;
+		} elseif (date('i', $endDateTime) == '59' && date('D', $endDateTime) == 'Sun') {
+			// need to account for the special case when the
+			// end time is actually 23:59
+			$record->hours = $record->hours_encoded = 'Open at ' . date('ga', $startDateTime);
+		} else {
+			$_start = date('i', $startDateTime) == '00'
+				? date('ga', $startDateTime)
+				: date('g:ia', $startDateTime);
+			$_end = date('i', $endDateTime) =='00'
+				? date('ga', $endDateTime)
+				: date('g:ia', $endDateTime);
+			$record->hours = sprintf("%s - %s", $_start, $_end);
+			$record->hours_encoded = sprintf("%s &ndash; %s", $_start, $_end);
+		}
+	} else {
+		// we have a date (no, not with a girl, but a date string)
+		$startDate = strtotime($eventTime->start->date);
+		$record->hours = $record->hours_encoded = $eventItem->summary;
+	}
+	return $record;
+}
+

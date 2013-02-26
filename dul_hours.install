@@ -72,6 +72,10 @@ function dul_hours_schema() {
 				'not null' => TRUE,
 				'default' => '',
 			),
+			'event_data' => array(
+				'type' => 'text',
+				'size' => 'big',
+			),
 		),
 		'foreign keys' => array(
 			'library' => array(
