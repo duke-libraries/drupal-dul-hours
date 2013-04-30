@@ -39,7 +39,7 @@ function dul_hours_menu() {
 		'page arguments' => array('dul_hours_admin_library_add_form'),
 		'access arguments' => array('administer site configuration'),
 		'file' => 'dul_hours.admin.inc',
-		'type' => MENU_DEFAULT_LOCAL_ACTION,
+		'type' => MENU_LOCAL_TASK,
 	);
 	$items['admin/config/library_hours/library/edit/%dul_hours_library'] = array(
 		'title callback' => array('dul_hours_library_get_title'),
