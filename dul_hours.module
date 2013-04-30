@@ -214,7 +214,7 @@ function dul_hours_library_load($lid) {
  * Return a title for the Library record (admin form purposes)
  */
 function dul_hours_library_get_title($library) {
-	return sprintf('%s (%s)', $library->library_name, $library->llibrary_id);
+	return sprintf('%s (%s)', $library->library_name, $library->library_id);
 }
 
 /**
