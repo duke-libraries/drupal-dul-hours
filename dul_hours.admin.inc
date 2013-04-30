@@ -95,3 +95,13 @@ function dul_hours_admin_library_default() {
 		),
 	);
 }
+
+/**
+ * Form builder for Library Edit
+ *
+ * @ingroup forms
+ * @see drupal_get_form
+ */
+function dul_hours_admin_edit_library($library) {
+	return array();
+}

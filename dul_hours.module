@@ -41,6 +41,14 @@ function dul_hours_menu() {
 		'file' => 'dul_hours.admin.inc',
 		'type' => MENU_DEFAULT_LOCAL_TASK,
 	);
+	$items['admin/config/library_hours/library/edit/%dul_hours_library'] = array(
+		'title callback' => array('dul_hours_library_get_title'),
+		'title arguments' => array(5),
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('dul_hours_admin_edit_library', 5),
+		'access arguments' => array('administer site configuration'),
+		'file' => 'dul_hours.admin.inc',
+	);
 
 	return $items;
 }
@@ -191,6 +199,22 @@ function dul_hours_get_libraries($exclude_public = FALSE) {
 		$rows[] = $row;
 	}
 	return $rows;
+}
+
+/**
+ * Return a single library record
+ */
+function dul_hours_library_load($lid) {
+	$result = db_query('SELECT * FROM {duke_cal_library} WHERE lid = :lid', array(':lid' => $lid));
+	$record = $result->fetchObject();
+	return $record;
+}
+
+/**
+ * Return a title for the Library record (admin form purposes)
+ */
+function dul_hours_library_get_title($library) {
+	return sprintf('%s (%s)', $library->library_name, $library->llibrary_id);
 }
 
 /**
