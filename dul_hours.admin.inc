@@ -117,7 +117,7 @@ function dul_hours_admin_edit_library($library) {
 		'#type' => 'hidden',
 		'#value' => $library->lid,
 	);
-	$form['library_id'] => array(
+	$form['library_id'] = array(
 		'#type' => 'textfield',
 		'#size' => 15,
 		'#required' => TRUE,
