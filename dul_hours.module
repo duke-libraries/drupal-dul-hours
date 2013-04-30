@@ -104,6 +104,7 @@ function dul_hours_block_configure($delta) {
 		$form['upcoming_days_display_public'] = array(
 			'#type'					=> 'checkbox',
 			'#title'				=> t('Display the <strong>Duke Library Public Hours</strong> in this block'),
+			'#default_value'=> variable_get('upcoming_days_display_public', 0),
 			'#states'				=> array(
 				'visible'	=> array(
 					':input[name=upcoming_days_library]' => array('value' => t('perkins')),
