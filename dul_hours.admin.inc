@@ -103,5 +103,33 @@ function dul_hours_admin_library_default() {
  * @see drupal_get_form
  */
 function dul_hours_admin_edit_library($library) {
-	return array();
+	$form = array();
+	
+	$form['library_name'] = array(
+		'#type' => 'textfield',
+		'#default_value' => check_plain($library->library_name),
+		'#size' => 40,
+		'#title' => t('Library Name'),
+		'#description' => t('The display name of this library when viewed on a page that displays Hours information'),
+		'#required' => TRUE,
+	);
+	$form['lid'] = array(
+		'#type' => 'hidden',
+		'#value' => $library->lid,
+	);
+	$form['library_id'] => array(
+		'#type' => 'textfield',
+		'#size' => 15,
+		'#required' => TRUE,
+		'#title' => t('Library ID'),
+		'#default_value' => $library->library_id,
+	),
+	$form['google_cal_id'] = array(
+		'#type' => 'textfield',
+		'#size' => 60,
+		'#title' => t('Google Calendar ID'),
+		'#description' => t('Enter the calendar identifier from Google.  Used when fetching hours data.'),
+		'#default_value' => $library->google_cal_id,
+	);
+	return $form;
 }
