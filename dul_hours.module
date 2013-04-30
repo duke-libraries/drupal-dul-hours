@@ -143,7 +143,11 @@ function dul_hours_block_save($delta = '', $edit = array()) {
 		case 'upcoming_days':
 			variable_set('upcoming_days_count', (int)$edit['upcoming_days_count']);
 			variable_set('upcoming_days_start_date', $edit['upcoming_days_start_date']);
-			variable_set('upcoming_days_display_public', $edit['upcoming_days_display_public']);
+			if ($edit['upcoming_days_library'] == 'perkins') {
+				variable_set('upcoming_days_display_public', $edit['upcoming_days_display_public']);
+			} else {
+				variable_set('upcoming_days_display_public', '0');
+			}
 			break;
 	}
 
