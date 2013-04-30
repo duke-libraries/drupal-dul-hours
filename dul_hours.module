@@ -207,6 +207,8 @@ function dul_hours_get_libraries($exclude_public = FALSE) {
 function dul_hours_library_load($lid) {
 	$result = db_query('SELECT * FROM {duke_cal_library} WHERE lid = :lid', array(':lid' => $lid));
 	$record = $result->fetchObject();
+	dpm($result);
+	dpm($record);
 	return $record;
 }
 
