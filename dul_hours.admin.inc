@@ -123,7 +123,7 @@ function dul_hours_admin_edit_library($library) {
 		'#required' => TRUE,
 		'#title' => t('Library ID'),
 		'#default_value' => $library->library_id,
-	),
+	);
 	$form['google_cal_id'] = array(
 		'#type' => 'textfield',
 		'#size' => 60,
