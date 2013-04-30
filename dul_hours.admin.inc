@@ -102,7 +102,7 @@ function dul_hours_admin_library_default() {
  * @ingroup forms
  * @see drupal_get_form
  */
-function dul_hours_admin_edit_library($library) {
+function dul_hours_admin_edit_library(&$form, &$form_state, $library) {
 	$form = array();
 	
 	$form['library_name'] = array(
