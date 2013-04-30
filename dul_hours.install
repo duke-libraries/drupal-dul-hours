@@ -97,7 +97,7 @@ function dul_hours_install() {
 	drupal_write_record('duke_cal_library', $o);
 
 	$o = new stdClass();
-	$o->google_cal_id = 'k1jgaoblhr60opsf5495g03s4o';
+	$o->google_cal_id = '8dcuklhi7984oqd7fs1tgdu8fs';
 	$o->library_id = 'public';
 	$o->library_name = t('General Public Hours');
 	drupal_write_record('duke_cal_library', $o);
@@ -106,6 +106,18 @@ function dul_hours_install() {
 	$o->google_cal_id = 'i97kj6o04evmd28rn52usc3lss';
 	$o->library_id = 'rbmscl';
 	$o->library_name = t('David M. Rubenstein & Manuscript Library');
+	drupal_write_record('duke_cal_library', $o);
+
+	$o = new stdClass();
+	$o->google_cal_id = 'k1jgaoblhr60opsf5495g03s4o';
+	$o->library_id = 'lilly';
+	$o->library_name = t('Lilly Library');
+	drupal_write_record('duke_cal_library', $o);
+
+	$o = new stdClass();
+	$o->google_cal_id = '4ln70ldn6a8cu9u619mtiqd4oo';
+	$o->library_id = 'music';
+	$o->library_name = t('Music Library');
 	drupal_write_record('duke_cal_library', $o);
 }
 
