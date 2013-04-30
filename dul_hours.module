@@ -142,7 +142,7 @@ function dul_hours_block_save($delta = '', $edit = array()) {
 		case 'upcoming_days':
 			variable_set('upcoming_days_count', (int)$edit['upcoming_days_count']);
 			variable_set('upcoming_days_start_date', $edit['upcoming_days_start_date']);
-			watchdog('dul_hours_block_save', print_r($edit, TRUE));
+			variable_set('upcoming_days_display_public', $edit['upcoming_days_display_public']);
 			break;
 	}
 
