@@ -74,9 +74,26 @@ function dul_hours_admin_settings_submit($form, $form_state) {
  * @see drupal_get_form
  */
 function dul_hours_admin_library_default() {
+	# get the list of libraries
+	$libraries = dul_hours_get_libraries();
+
+	$headers = array('Library Name', 'Library ID', 'Google Calendar ID', 'Actions');
+	$rows = array();
+	foreach ($libraries as $library) {
+		$rows[] = array($library->library_name, $library->library_id, $library->google_cal_id, '');
+	}
+	return array(
+		'library_table' => array(
+			'#theme' => 'table',
+			'#header' => $headers,
+			'#rows' => $rows,
+		),
+	);
+	/*
 	return array(
 		'page_title' => array(
 			'#markup' => '<h3>Available Libraries</h3>',
 		),
 	);
+	*/
 }
