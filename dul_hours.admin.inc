@@ -80,7 +80,12 @@ function dul_hours_admin_library_default() {
 	$headers = array('Library Name', 'Library ID', 'Google Calendar ID', 'Actions');
 	$rows = array();
 	foreach ($libraries as $library) {
-		$rows[] = array($library->library_name, $library->library_id, $library->google_cal_id, '');
+		$row = array();	// initialize the new array
+		$row[] = $library->library_name;
+		$row[] = $library->library_id;
+		$row[] = $library->google_cal_id;
+		$row[] = l(t('Edit'), 'admin/config/library_hours/library/edit/' . $library->lid);
+		$rows[] = $row;
 	}
 	return array(
 		'library_table' => array(
@@ -89,11 +94,4 @@ function dul_hours_admin_library_default() {
 			'#rows' => $rows,
 		),
 	);
-	/*
-	return array(
-		'page_title' => array(
-			'#markup' => '<h3>Available Libraries</h3>',
-		),
-	);
-	*/
 }
