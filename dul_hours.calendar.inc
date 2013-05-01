@@ -47,7 +47,7 @@ function dul_hours_fetch_events($calId, $service, $day_start, $num_events) {
 		'maxResults' => $num_events,
 	);
 
-	echo sprintf("%s@group.calendar.google.com\n", $calId);
+	#echo sprintf("%s@group.calendar.google.com\n", $calId);
 
 	$events = $service->events->listEvents($calId . '@group.calendar.google.com', $params);
 	return $events;
