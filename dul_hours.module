@@ -57,10 +57,12 @@ function dul_hours_menu() {
  * Implements hook_theme()
  */
 function dul_hours_theme() {
-	'hours_block' => array(),
-	'hours_block_day' => array(
-		'variables' => array(),
-	),
+	return array(
+		'hours_block' => array(),
+		'hours_block_day' => array(
+			'variables' => array(),
+		),
+	);
 }
 
 /**
