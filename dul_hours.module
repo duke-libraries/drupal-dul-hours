@@ -341,7 +341,7 @@ function dul_hours_create_hours_record($library, $eventItem) {
 
 /******** PRIVATE FUNCTIONS ***********/
 function _dul_hours_fetch_hours_events($library, $start_date, $num_events) {
-	$result = db_query('SELECT google_cal_id FROM {duke_cal_library} WHERE library = :library',
+	$result = db_query('SELECT google_cal_id FROM {duke_cal_library} WHERE library_id = :library',
 		array(':library' => $library));
 	$record = $result->fetchObject();
 
