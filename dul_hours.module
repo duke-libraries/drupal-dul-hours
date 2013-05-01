@@ -54,6 +54,16 @@ function dul_hours_menu() {
 }
 
 /**
+ * Implements hook_theme()
+ */
+function dul_hours_theme() {
+	'hours_block' => array(),
+	'hours_block_day' => array(
+		'variables' => array(),
+	),
+}
+
+/**
  * Implements hook_permission()
  */
 function dul_hours_permission() {
@@ -169,6 +179,24 @@ function dul_hours_block_view($delta='') {
 	switch ($delta) {
 
 	case 'upcoming_days':
+		$library = variable_get('dul_hours.default_library', 'perkins');
+		$days_to_fetch = (int) variable_get('upcoming_days_count');
+		$upcoming_start_date = variable_get('upcoming_days_start_date', 'current_day');
+		switch ($upcoming_start_date) {
+			case 'current_day':
+				$start_date = time();
+				break;
+
+			case 'sunday':
+			case 'monday':
+				# go back (if need be) and find the most recent "Sunday"
+				$start_date = _dul_hours_find_recent($upcoming_start_date);
+				break;
+		}
+
+		$events = _dul_hours_fetch_hours_events($library, $start_date, $days_to_fetch);
+		// with that library information, fetch the days for display
+		
 		// $library = variable_get('dul_hours.default_library', 'PERKINS');
 		// $library_name = _dul_hours_library_get_attr($library, 'name');
 		// $block['subject'] = $library_name . ' Hours';
@@ -241,7 +269,8 @@ function dul_hours_delete_hours($thru, $from_drush = FALSE) {
 }
 
 /**
- * Creates an 'hours' object that can be stored in the database.
+ * Creates an 'hours' object that can be stored in the database, 
+ * or used in block content
  */
 function dul_hours_create_hours_record($library, $eventItem) {
 	$record = new stdClass();
@@ -306,5 +335,28 @@ function dul_hours_create_hours_record($library, $eventItem) {
 		$record->hours = $record->hours_encoded = $eventItem->summary;
 	}
 	return $record;
+}
+
+/******** PRIVATE FUNCTIONS ***********/
+function _dul_hours_fetch_hours_events($library, $start_date = time(), $num_events = 4) {
+	$result = db_query('SELECT google_cal_id FROM {duke_cal_library} WHERE library = :library',
+		array(':library' => $library));
+	$record = $result->fetchObject();
+
+	require_once DRUPAL_ROOT . '/sites/all/libraries/gapi/apiClient.php';
+	require_once DRUPAL_ROOT . '/sites/all/libraries/gapi/contrib/apiCalendarService.php';
+	require_once drupal_get_path('module', 'dul_hours') . '/dul_hours.calendar.inc';
+
+	$service = '';
+	try {
+		$service = dul_hours_load_calendar_service();
+	} catch(Exception $exc) {
+		drupal_set_message($exc->getMessage(), 'error');
+		return NULL;
+	}
+
+	$events = dul_hours_fetch_events($record->google_cal_id, $service, $start_date, $num_events);
+	dpm($events);
+	return $events;
 }
 
