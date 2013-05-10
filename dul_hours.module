@@ -58,9 +58,12 @@ function dul_hours_menu() {
  */
 function dul_hours_theme() {
 	return array(
-		'hours_block' => array(),
+		'hours_block' => array(
+			'variables' => array('items' => NULL),
+		),
 		'hours_block_day' => array(
-			'variables' => array(),
+			'variables' => array('item' => NULL),
+			'template' => 'hours_block_day',
 		),
 	);
 }
@@ -184,6 +187,7 @@ function dul_hours_block_view($delta='') {
 		$library = variable_get('dul_hours.default_library', 'perkins');
 		$days_to_fetch = (int) variable_get('upcoming_days_count');
 		$upcoming_start_date = variable_get('upcoming_days_start_date', 'current_day');
+		$display_public_hours = variable_get('upcoming_days_display_public');
 		switch ($upcoming_start_date) {
 			case 'current_day':
 				$start_date = time();
@@ -196,19 +200,41 @@ function dul_hours_block_view($delta='') {
 				break;
 		}
 
-		$events = _dul_hours_fetch_hours_events($library, $start_date, $days_to_fetch);
+		$result = _dul_hours_fetch_hours_events($library, $start_date, $days_to_fetch);
+		$eventItems = array();
+		foreach($result->items as $item) {
+			$eventItems[] = dul_hours_create_hours_record($library, $item);
+		}
+		if ($display_public_hours) {
+			// fetch the public hours -- need to get the 'public google_calendar_id, first
+		}
+		$block['content'] = theme('hours_block', array('items' => $eventItems));
 		// with that library information, fetch the days for display
 		
 		// $library = variable_get('dul_hours.default_library', 'PERKINS');
 		// $library_name = _dul_hours_library_get_attr($library, 'name');
 		// $block['subject'] = $library_name . ' Hours';
 		// $block['content'] = dul_hours_block_content($delta);
-		// return $block;
+		return $block;
 		break;
 
 	};
 
 	return '';
+}
+
+/**
+ * Default theme implementation for hours_block
+ */
+function theme_hours_block($vars) {
+	if (empty($vars['items'])) {
+		return '';
+	}
+	$output = '';
+	foreach ($vars['items'] as $item) {
+		$output .= theme('hours_block_day', array('item' => $item));
+	}
+	return $output;
 }
 
 /**
@@ -277,7 +303,7 @@ function dul_hours_delete_hours($thru, $from_drush = FALSE) {
 function dul_hours_create_hours_record($library, $eventItem) {
 	$record = new stdClass();
 
-	$record->lid = $library->lid;
+	//$record->lid = $library->lid;
 	if (!isset($eventItem)) {
 		return $record;
 	}
@@ -358,7 +384,7 @@ function _dul_hours_fetch_hours_events($library, $start_date, $num_events) {
 	}
 
 	$events = dul_hours_fetch_events($record->google_cal_id, $service, $start_date, $num_events);
-	dpm($events);
+	// dpm($events);
 	return $events;
 }
 
