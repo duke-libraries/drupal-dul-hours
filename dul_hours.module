@@ -311,7 +311,7 @@ function dul_hours_create_hours_record($library, $eventItem) {
 	if (isset($eventItem->start->dateTime)) {
 		$convertedTime = strtotime($eventItem->start->dateTime);
 	} else {
-		$convertedTime = strtotime($eventTime->start->date);
+		$convertedTime = strtotime($eventItem->start->date);
 	}
 
 	$currentDate = getdate();
@@ -330,7 +330,7 @@ function dul_hours_create_hours_record($library, $eventItem) {
 		$record->hours = preg_replace('/^(lilly|public|rubenstein|perkins|music): /i', '', $eventItem->summary);
 		$record->hours_encoded = str_replace('-', ' &ndash; ', $record->hours);
 		$record->allDay = preg_match('/24 hours/i', $record->hours) == 1;
-	} elseif (preg_match('/closed/i', $eventTime->summary) == 1) {
+	} elseif (preg_match('/closed/i', $eventItem->summary) == 1) {
 		$record->hours = $record->hours_encoded = 'CLOSED';
 		$record->allDay = TRUE;
 		$record->libraryClosed = TRUE;
@@ -359,7 +359,7 @@ function dul_hours_create_hours_record($library, $eventItem) {
 		}
 	} else {
 		// we have a date (no, not with a girl, but a date string)
-		$startDate = strtotime($eventTime->start->date);
+		$startDate = strtotime($eventItem->start->date);
 		$record->hours = $record->hours_encoded = $eventItem->summary;
 	}
 	return $record;

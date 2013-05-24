@@ -5,4 +5,5 @@ core = 7.x
 version = 1.0-alpha
 files[] = dul_hours.module
 files[] = dul_hours.calendar.inc
+stylesheets[all][] = dul_hours.css
 
