@@ -206,18 +206,20 @@ function dul_hours_block_view($delta='') {
 				break;
 		}
 
-		$theme_data = array('items' => $eventItems);
-
 		$result = _dul_hours_fetch_hours_events($library, $start_date, $days_to_fetch);
 		$eventItems = array();
 		foreach($result->items as $item) {
 			$eventItems[] = dul_hours_create_hours_record($library, $item);
 		}
+
+		// create the theme data array
+		$theme_data = array('items' => $eventItems);
+
 		if ($display_public_hours) {
 			// fetch the public hours -- need to get the 'public google_calendar_id, first
 			$result = _dul_hours_fetch_hours_events('public', $start_date, $days_to_fetch);
 			$publicEventItems = array();
-			foreach($result->itmes as $item) {
+			foreach($result->items as $item) {
 				$publicEventItems[] = dul_hours_create_hours_record('public', $item);
 			}
 			$theme_data['public_items'] = $publicEventItems;
