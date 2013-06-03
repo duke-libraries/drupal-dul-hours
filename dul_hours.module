@@ -246,8 +246,8 @@ function theme_hours_block($vars) {
 	}
 	$output = '';
 	if (!empty($vars['public_items'])) {
-		for ($i = 0; $i < count($vars['items']; $i++) {
-			$output .= theme('hours_block_day', array('item' => $vars['item'][$i], 'public_item' => $vars['public_items'][$i]);
+		for ($i = 0; $i < count($vars['items']); $i++) {
+			$output .= theme('hours_block_day', array('item' => $vars['item'][$i], 'public_item' => $vars['public_items'][$i]));
 		}
 	} else {
 		foreach ($vars['items'] as $item) {
