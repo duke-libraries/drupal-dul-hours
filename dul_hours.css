@@ -11,3 +11,7 @@ DIV.hours_day {
 div.dukeusers span.title {
 	color: #111;
 }
+#hoursTable div.genpublic {
+	text-align: right;
+	color: #555;
+}
