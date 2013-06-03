@@ -1,5 +1,13 @@
 DIV.hours_day {
-	float: left;
-	margin-right: 3px;
 }
-
+#hoursTable .dukeusers {
+	font-weight: 1.0em;
+	color: #111;
+}
+#hoursTable div.hours {
+	float: right;
+	text-align: right;
+}
+div.dukeusers span.title {
+	color: #111;
+}

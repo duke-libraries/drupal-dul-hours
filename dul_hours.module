@@ -246,7 +246,7 @@ function theme_hours_block($vars) {
 	if (empty($vars['items'])) {
 		return '';
 	}
-	$output = '';
+	$output = '<div id="hoursTable">';
 	if (!empty($vars['public_items'])) {
 		for ($i = 0; $i < count($vars['items']); $i++) {
 			$output .= theme('hours_block_day', array('item' => $vars['items'][$i], 'public_item' => $vars['public_items'][$i]));
@@ -256,6 +256,7 @@ function theme_hours_block($vars) {
 			$output .= theme('hours_block_day', array('item' => $item));
 		}
 	}
+	$output .= '</div>';
 	return $output;
 }
 
