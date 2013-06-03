@@ -59,10 +59,10 @@ function dul_hours_menu() {
 function dul_hours_theme() {
 	return array(
 		'hours_block' => array(
-			'variables' => array('items' => NULL),
+			'variables' => array('items' => NULL, 'public_items' => NULL),
 		),
 		'hours_block_day' => array(
-			'variables' => array('item' => NULL),
+			'variables' => array('item' => NULL, 'public_item' => NULL),
 			'template' => 'hours_block_day',
 		),
 	);
@@ -72,6 +72,12 @@ function dul_hours_theme() {
  * Implements hook_permission()
  */
 function dul_hours_permission() {
+	return array(
+		'administer hours' => array(
+			'title' => t('Administer Library Hours'),
+			'description' => t('Perform administrative tasks for the Library Hours interface.'),
+		),
+	);
 }
 
 /**
@@ -200,6 +206,8 @@ function dul_hours_block_view($delta='') {
 				break;
 		}
 
+		$theme_data = array('items' => $eventItems);
+
 		$result = _dul_hours_fetch_hours_events($library, $start_date, $days_to_fetch);
 		$eventItems = array();
 		foreach($result->items as $item) {
@@ -207,8 +215,14 @@ function dul_hours_block_view($delta='') {
 		}
 		if ($display_public_hours) {
 			// fetch the public hours -- need to get the 'public google_calendar_id, first
+			$result = _dul_hours_fetch_hours_events('public', $start_date, $days_to_fetch);
+			$publicEventItems = array();
+			foreach($result->itmes as $item) {
+				$publicEventItems[] = dul_hours_create_hours_record('public', $item);
+			}
+			$theme_data['public_items'] = $publicEventItems;
 		}
-		$block['content'] = theme('hours_block', array('items' => $eventItems));
+		$block['content'] = theme('hours_block', $theme_data);
 		// with that library information, fetch the days for display
 		
 		// $library = variable_get('dul_hours.default_library', 'PERKINS');
@@ -231,8 +245,14 @@ function theme_hours_block($vars) {
 		return '';
 	}
 	$output = '';
-	foreach ($vars['items'] as $item) {
-		$output .= theme('hours_block_day', array('item' => $item));
+	if (!empty($vars['public_items'])) {
+		for ($i = 0; $i < count($vars['items']; $i++) {
+			$output .= theme('hours_block_day', array('item' => $vars['item'][$i], 'public_item' => $vars['public_items'][$i]);
+		}
+	} else {
+		foreach ($vars['items'] as $item) {
+			$output .= theme('hours_block_day', array('item' => $item));
+		}
 	}
 	return $output;
 }
@@ -263,8 +283,6 @@ function dul_hours_get_libraries($exclude_public = FALSE) {
 function dul_hours_library_load($lid) {
 	$result = db_query('SELECT * FROM {duke_cal_library} WHERE lid = :lid', array(':lid' => $lid));
 	$record = $result->fetchObject();
-	dpm($result);
-	dpm($record);
 	return $record;
 }
 
