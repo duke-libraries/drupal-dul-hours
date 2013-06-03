@@ -1,6 +1,6 @@
 <?php
 ?>
-<div class="hours_day">
+<div class="hours_day<?php echo $item->isCurrentDay ? ' today' : ''; ?>">
 	<div class="dukeusers">
 		<div class="hours"><?php echo $item->hours; ?></div>
 		<span class="title"><?php echo $item->libraryDate['dayAndDate']; ?></span>
