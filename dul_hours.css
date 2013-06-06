@@ -15,3 +15,6 @@ div.dukeusers span.title {
 	text-align: right;
 	color: #555;
 }
+#hoursTable div.today {
+	background-color: #F3F3F3;
+}
