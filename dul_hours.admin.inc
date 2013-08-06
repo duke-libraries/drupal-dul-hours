@@ -102,12 +102,11 @@ function dul_hours_admin_library_default() {
  * @ingroup forms
  * @see drupal_get_form
  */
-function dul_hours_admin_edit_library(&$form, &$form_state, $library) {
-	$form = array();
+function dul_hours_edit_library($form, &$form_state, $library) {
 	
 	$form['library_name'] = array(
 		'#type' => 'textfield',
-		'#default_value' => check_plain($library->library_name),
+		'#default_value' => decode_entities(check_plain($library->library_name)),
 		'#size' => 40,
 		'#title' => t('Library Name'),
 		'#description' => t('The display name of this library when viewed on a page that displays Hours information'),
@@ -131,5 +130,30 @@ function dul_hours_admin_edit_library(&$form, &$form_state, $library) {
 		'#description' => t('Enter the calendar identifier from Google.  Used when fetching hours data.'),
 		'#default_value' => $library->google_cal_id,
 	);
+	$form['actions'] = array(
+		'#type' => 'actions',
+	);
+	$form['actions']['submit'] = array(
+		'#type' => 'submit',
+		'#value' => t('Save Changes'),
+	);
 	return $form;
+}
+
+/**
+ * Submit function for dul_hours_admin_edit_library
+ */
+function dul_hours_edit_library_submit($form, $form_state) {
+	$o = new stdClass();
+	$o->lid = $form_state['values']['lid'];
+	$o->library_id = check_plain($form_state['values']['library_id']);
+	$o->google_cal_id = check_plain($form_state['values']['google_cal_id']);
+	$o->library_name = decode_entities(check_plain($form_state['values']['library_name']));
+	if (drupal_write_record('duke_cal_library', $o, 'lid')) {
+		drupal_set_message(t('The Library/Google Calendar Mapping has been saved'));
+	} else {
+		drupal_set_message(t('Unable to save Library/Google Calendar Mapping'), 'error');
+	}
+	
+
 }
