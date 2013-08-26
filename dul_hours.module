@@ -62,7 +62,7 @@ function dul_hours_menu() {
 /**
  * Implements hook_theme()
  */
-function dul_hours_theme() {
+function dul_hours_theme($existing, $type, $theme, $path) {
 	return array(
 		'hours_block' => array(
 			'variables' => array('items' => NULL, 'public_items' => NULL),
@@ -70,6 +70,11 @@ function dul_hours_theme() {
 		'hours_block_day' => array(
 			'variables' => array('item' => NULL, 'public_item' => NULL),
 			'template' => 'hours_block_day',
+		),
+		'override_admin_library_default_form' => array(
+			'render element' => 'form',
+			'template' => 'form--admin_library_default',
+			'path' => $path . '/templates',
 		),
 	);
 }
