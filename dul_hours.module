@@ -1,4 +1,6 @@
 <?php
+require_once DRUPAL_ROOT . '/sites/all/libraries/gapi/apiClient.php';
+require_once DRUPAL_ROOT . '/sites/all/libraries/gapi/contrib/apiCalendarService.php';
 
 /**
  * Implements hook_menu()
@@ -51,10 +53,18 @@ function dul_hours_menu() {
 	);
 	// about hours page
 	$items['about/hours'] = array(
-		'title' => 'Duke University Libraries Hours',
-		'page callback' => 'dul_hours_table_page',
+		'title' => 'Library Hours',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('dul_hours_table_page'),
 		'file' => 'dul_hours.pages.inc',
 		'access callback' => TRUE,
+	);
+	$items['about/hours/%dul_hours_library'] = array(
+		'title' => 'Duke University Library Hours',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array('dul_hours_calendar_page', 2),
+		'access callback' => TRUE,
+		'file' => 'dul_hours.pages.inc',
 	);
 	return $items;
 }
@@ -62,7 +72,7 @@ function dul_hours_menu() {
 /**
  * Implements hook_theme()
  */
-function dul_hours_theme() {
+function dul_hours_theme($existing, $type, $theme, $path) {
 	return array(
 		'hours_block' => array(
 			'variables' => array('items' => NULL, 'public_items' => NULL),
@@ -70,6 +80,15 @@ function dul_hours_theme() {
 		'hours_block_day' => array(
 			'variables' => array('item' => NULL, 'public_item' => NULL),
 			'template' => 'hours_block_day',
+		),
+		'library_calendar' => array(
+			'variables' => array('weeks' => NULL, 'library' => NULL),
+			'file' => 'dul_hours.pages.inc',
+		),
+		'override_admin_library_default_form' => array(
+			'render element' => 'form',
+			'template' => 'form--admin_library_default',
+			'path' => $path . '/templates',
 		),
 	);
 }
@@ -266,6 +285,9 @@ function theme_hours_block($vars) {
 	return $output;
 }
 
+function dul_hours_load_libraries($exlude_public = FALSE) {
+	return dul_hours_get_libraries($exlude_public);
+}
 /**
  * Return a list of libraries
  */
@@ -290,9 +312,8 @@ function dul_hours_get_libraries($exclude_public = FALSE) {
  * Return a single library record
  */
 function dul_hours_library_load($lid) {
-	$result = db_query('SELECT * FROM {duke_cal_library} WHERE lid = :lid', array(':lid' => $lid));
+	$result = db_query('SELECT * FROM {duke_cal_library} WHERE lid = :lid OR library_id = :library_id', array(':lid' => $lid, ':library_id' => $lid));
 	$record = $result->fetchObject();
-	watchdog('dul_hours_library_load', print_r($record, TRUE));
 	return $record;
 }
 

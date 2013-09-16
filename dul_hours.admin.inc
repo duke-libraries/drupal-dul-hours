@@ -73,8 +73,9 @@ function dul_hours_admin_settings_submit($form, $form_state) {
  * @ingroup forms
  * @see drupal_get_form
  */
-function dul_hours_admin_library_default() {
+function dul_hours_admin_library_default($form, &$form_state) {
 	# get the list of libraries
+	error_log('in form default');
 	$libraries = dul_hours_get_libraries();
 
 	$headers = array('Library Name', 'Library ID', 'Google Calendar ID', 'Actions');
@@ -87,13 +88,78 @@ function dul_hours_admin_library_default() {
 		$row[] = l(t('Edit'), 'admin/config/library_hours/library/edit/' . $library->lid);
 		$rows[] = $row;
 	}
-	return array(
-		'library_table' => array(
-			'#theme' => 'table',
-			'#header' => $headers,
-			'#rows' => $rows,
-		),
+	$form['library_table'] = array(
+		'#theme' => 'table',
+		'#header' => $headers,
+		'#rows' => $rows,
 	);
+
+	$form['add_library'] = array(
+		'#type' => 'fieldset',
+		'#title' => t('Add a Library Mapping'),
+		'#description' => t('Use this section to add a Library-to-Google Calendar mapping'),
+		'#collapsible' => TRUE,
+		'#collapsed' => FALSE,
+	);
+	$form['add_library']['library_id'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Library ID'),
+		'#description' => t('Examples: <em>perkins</em>, <em>rubenstein</em> -- Please use lowercase letters and no spaces'),
+		'#required' => TRUE,
+	);
+	$form['add_library']['library_name'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Library Name'),
+		'#description' => t('Enter a descriptive name for this record.'),
+		'#required' => TRUE,
+	);
+	$form['add_library']['google_cal_id'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Google Calendar ID'),
+		'#required' => TRUE,
+	);
+	$form['add_library']['actions'] = array(
+		'#type' => 'actions',
+	);
+	$form['add_library']['actions']['add_library'] = array(
+		'#type' => 'submit',
+		'#value' => t('Add Record'),
+		'#submit' => array('dul_hours_add_library_submit'),
+	);
+	return $form;
+}
+
+/**
+ * Handle post-validation form submission for adding library
+ * @ingroup forms
+ */
+function dul_hours_add_library_submit($form, $form_state) {
+	# validation is assumed to have passed, so it's safe 
+	# to save the new record
+	# --
+	# however, do a check to make sure it doesn't already exist.
+	
+	$res = db_query('SELECT * FROM {duke_cal_library} WHERE library_id = :library_id',
+		array(':library_id' => $form_state['values']['library_id']));
+	if ($res->fetchObject()) {
+		drupal_set_message(t('This Library instance already exists.'), 'error');
+		return;
+	}
+	try {
+		$q = db_insert('duke_cal_library')
+			->fields(
+				array(
+					'library_id' => $form_state['values']['library_id'],
+					'library_name' => check_plain($form_state['values']['library_name']),
+					'google_cal_id' => check_plain($form_state['values']['google_cal_id']),
+				)
+			);
+		if ($q->execute()) {
+			drupal_set_message('The new record was added successfully');			
+		}
+	} catch(Exception $e) {
+		drupal_set_message($e->getMessage(), 'error');
+	}
 }
 
 /**
