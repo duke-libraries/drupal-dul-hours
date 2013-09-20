@@ -131,3 +131,11 @@ function dul_hours_uninstall() {
 	variable_del('dul_hours.default_library');
 	variable_del('dul_hours.default_num_events');
 }
+
+/**
+ * Sets a default variable value for the new 'dul_hours.upcoming_days_block' variable.
+ * 
+ */
+function dul_hours_update_7110() {
+	variable_set('dul_hours.upcoming_days_block', array('perkins'));
+}

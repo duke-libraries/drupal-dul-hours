@@ -1,10 +1,9 @@
 <?php
 ?>
-<div class="hours_day<?php echo $item->isCurrentDay ? ' today' : ''; ?>">
-	<div class="dukeusers">
-		<div class="hours"><?php echo $item->hours; ?></div>
-		<span class="title"><?php echo $item->libraryDate['dayAndDate']; ?></span>
-	</div>
+<div class="hours-row<?php echo $item->isCurrentDay ? ' hours-today' : ''; ?>">
+	<span class="day"><?php echo $item->libraryDate['dayAndDate']; ?></span>
+	<span class="hours"><?php echo $item->hours_encoded; ?>
+
 	<?php if(!empty($public_item)): ?>
 	<div class="genpublic">Public: <?php echo $public_item->hours; ?></div>
 	<?php endif; ?>

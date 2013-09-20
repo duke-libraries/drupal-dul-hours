@@ -153,8 +153,11 @@ function dul_hours_calendar_page($form, &$form_state, $library) {
 		$weeks[] = $calevents;
 		$sunday_time += (86400 * 7);
 	}
-	
-	$render = array(
+
+	$table = theme('library_calendar', array('library' => $library, 'weeks' => $weeks));
+	//$render = render($table);
+
+	$render['library_calendar'] = array(
 		'#theme' => 'library_calendar',
 		'#library' => $library,
 		'#weeks' => $weeks,
@@ -179,6 +182,5 @@ function theme_library_calendar($variables) {
 		}
 		$rows[] = $row;
 	}
-	return theme('table', array('header' => $header, 'rows' => $rows));
-
+	return render(theme('table', array('header' => $header, 'rows' => $rows)));
 }

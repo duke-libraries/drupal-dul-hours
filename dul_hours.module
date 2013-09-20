@@ -75,7 +75,7 @@ function dul_hours_menu() {
 function dul_hours_theme($existing, $type, $theme, $path) {
 	return array(
 		'hours_block' => array(
-			'variables' => array('items' => NULL, 'public_items' => NULL),
+			'variables' => array('items' => NULL, 'public_items' => NULL, 'library_id' => NULL),
 		),
 		'hours_block_day' => array(
 			'variables' => array('item' => NULL, 'public_item' => NULL),
@@ -133,6 +133,17 @@ function dul_hours_block_info() {
 		'cache'				=> DRUPAL_CACHE_PER_USER,
 		'visibility'	=> 0,
 	);
+	$dul_hours_cal_blocks = variable_get('dul_hours.upcoming_days_block', array());
+	foreach ($dul_hours_cal_blocks as $library_id) {
+		$blocks['upcoming_days-' . $library_id] = array(
+			'info' => t('Hours for Upcoming Days (' . $library_id . ')'),
+			'cache' => DRUPAL_CACHE_PER_USER,
+		);
+		$blocks['single_day-' . $library_id] = array(
+			'info'				=> t('Hours for Single Day (' . $library_id . ')'),
+			'cache'				=> DRUPAL_CACHE_PER_USER,
+		);
+	}
 	return $blocks;
 }
 
@@ -142,7 +153,9 @@ function dul_hours_block_info() {
 function dul_hours_block_configure($delta) {
 	$form = array();
 
-	switch ($delta) {
+	$delta_parts = explode('-', $delta);
+	
+	switch ($delta_parts[0]) {
 	case 'upcoming_days':
 		$libraries = dul_hours_get_libraries(TRUE);	// exclude PUBLIC library hours
 		$library_options = array();
@@ -153,7 +166,8 @@ function dul_hours_block_configure($delta) {
 			'#type'					=> 'select',
 			'#title'				=> t('Display Hours for this Library'),
 			'#options'			=> $library_options,
-			'#default_value'	=> variable_get('upcoming_days_library'),
+			//'#default_value'	=> variable_get('upcoming_days_library'),
+			'#default_value' => $delta_parts[1],
 		);
 		$form['upcoming_days_display_public'] = array(
 			'#type'					=> 'checkbox',
@@ -170,7 +184,8 @@ function dul_hours_block_configure($delta) {
 			'#title'				=> t('Configure the number of days to display'),
 			'#size'					=> 4,
 			'#description'	=> t('Enter the number of days that will appear in the block.'),
-			'#default_value'	=> variable_get('upcoming_days_count', 4),
+			'#default_value'	=> variable_get('upcoming_days_count_' . $delta_parts[1], 4),
+			'#required' => TRUE,
 		);
 		$start_options = array(
 			'current_day' => t('Current Day'),
@@ -182,7 +197,7 @@ function dul_hours_block_configure($delta) {
 			'#title'				=> t('First day to display'),
 			'#description'	=> t('Determine what day appears first in the block display.'),
 			'#options'			=> $start_options,
-			'#default_value'	=> variable_get('upcoming_days_start_date', 'current_day'),
+			'#default_value'	=> variable_get('upcoming_days_start_date_' . $delta_parts[1], 'current_day'),
 		);
 		break;
 	}
@@ -193,10 +208,12 @@ function dul_hours_block_configure($delta) {
  * Implements hook_block_save()
  */
 function dul_hours_block_save($delta = '', $edit = array()) {
-	switch ($delta) {
+	$delta_parts = explode('-', $delta);
+	switch ($delta_parts[0]) {
 		case 'upcoming_days':
-			variable_set('upcoming_days_count', (int)$edit['upcoming_days_count']);
-			variable_set('upcoming_days_start_date', $edit['upcoming_days_start_date']);
+			variable_set('upcoming_days_count_' . $delta_parts[1], (int)$edit['upcoming_days_count']);
+			variable_set('upcoming_days_start_date_' . $delta_parts[1], $edit['upcoming_days_start_date']);
+			
 			if ($edit['upcoming_days_library'] == 'perkins') {
 				variable_set('upcoming_days_display_public', $edit['upcoming_days_display_public']);
 			} else {
@@ -212,12 +229,22 @@ function dul_hours_block_save($delta = '', $edit = array()) {
  * Implements hook_block_view()
  */
 function dul_hours_block_view($delta='') {
-	switch ($delta) {
+	$delta_parts = explode('-', $delta);
+	
+	switch ($delta_parts[0]) {
 
 	case 'upcoming_days':
-		$library = variable_get('dul_hours.default_library', 'perkins');
-		$days_to_fetch = (int) variable_get('upcoming_days_count');
-		$upcoming_start_date = variable_get('upcoming_days_start_date', 'current_day');
+		if (count($delta_parts) == 1) {
+			$library = variable_get('dul_hours.default_library', 'perkins');
+			$days_to_fetch = (int) variable_get('upcoming_days_count');
+			$upcoming_start_date = variable_get('upcoming_days_start_date', 'current_day');
+		} else {
+			$library = $delta_parts[1];
+			$days_to_fetch = (int) variable_get('upcoming_days_count_' . $delta_parts[1]);
+			$upcoming_start_date = variable_get('upcoming_days_start_date_' . $delta_parts[1], 'current_day');
+		} 
+		$library_record = dul_hours_library_load($library);
+		
 		$display_public_hours = variable_get('upcoming_days_display_public');
 		switch ($upcoming_start_date) {
 			case 'current_day':
@@ -238,7 +265,7 @@ function dul_hours_block_view($delta='') {
 		}
 
 		// create the theme data array
-		$theme_data = array('items' => $eventItems);
+		$theme_data = array('items' => $eventItems, 'library_id' => $delta_parts[1]);
 
 		if ($display_public_hours) {
 			// fetch the public hours -- need to get the 'public google_calendar_id, first
@@ -249,7 +276,7 @@ function dul_hours_block_view($delta='') {
 			}
 			$theme_data['public_items'] = $publicEventItems;
 		}
-		$block['content'] = theme('hours_block', $theme_data);
+		$block['content'] = '<h3>' . $library_record->library_name . ' Hours</h3>' . theme('hours_block', $theme_data);
 		// with that library information, fetch the days for display
 		
 		// $library = variable_get('dul_hours.default_library', 'PERKINS');
@@ -271,7 +298,7 @@ function theme_hours_block($vars) {
 	if (empty($vars['items'])) {
 		return '';
 	}
-	$output = '<div id="hoursTable">';
+	$output = '<div class="clearfix">';
 	if (!empty($vars['public_items'])) {
 		for ($i = 0; $i < count($vars['items']); $i++) {
 			$output .= theme('hours_block_day', array('item' => $vars['items'][$i], 'public_item' => $vars['public_items'][$i]));
@@ -281,6 +308,7 @@ function theme_hours_block($vars) {
 			$output .= theme('hours_block_day', array('item' => $item));
 		}
 	}
+	$output .= '<div class="other"><a href="/about/hours/' . $vars['library_id'] . '">' . t('Hours by Month') . '</a>&nbsp;&raquo;</div>'; 
 	$output .= '</div>';
 	return $output;
 }

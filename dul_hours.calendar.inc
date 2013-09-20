@@ -37,7 +37,8 @@ function dul_hours_fetch_events($calId, $service, $day_start, $num_events) {
 
 	if (is_int($day_start)) {
 		// convert to date string format (perferred)
-		$timeMin = date('Y-m-d', $day_start) . 'T00:00:00-05:00';
+		//$timeMin = date('Y-m-d', $day_start) . 'T00:00:00-05:00';
+		$timeMin = date('c', $day_start);
 	}
 
 	$params = array(

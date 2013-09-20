@@ -117,6 +117,10 @@ function dul_hours_admin_library_default($form, &$form_state) {
 		'#type' => 'textfield',
 		'#title' => t('Google Calendar ID'),
 		'#required' => TRUE,
+	);	
+	$form['add_library']['expose_block'] = array(
+		'#type' => 'checkbox',
+		'#title' => t('Expose <em>Upcoming Days</em> Block for this calendar'),
 	);
 	$form['add_library']['actions'] = array(
 		'#type' => 'actions',
@@ -157,6 +161,11 @@ function dul_hours_add_library_submit($form, $form_state) {
 		if ($q->execute()) {
 			drupal_set_message('The new record was added successfully');			
 		}
+		$dul_hours_cal_blocks = variable_get('dul_hours.upcoming_days_block', array());
+		if (!in_array($form_state['values']['library_id'], $dul_hours_cal_blocks)) {
+			$dul_hours_cal_blocks[] = $form_state['values']['library_id'];
+		}
+		variable_set('dul_hours.upcoming_days_block', $dul_hours_cal_blocks);
 	} catch(Exception $e) {
 		drupal_set_message($e->getMessage(), 'error');
 	}
@@ -169,6 +178,7 @@ function dul_hours_add_library_submit($form, $form_state) {
  * @see drupal_get_form
  */
 function dul_hours_edit_library($form, &$form_state, $library) {
+	$dul_hours_cal_blocks = variable_get('dul_hours.upcoming_days_block', array());
 	
 	$form['library_name'] = array(
 		'#type' => 'textfield',
@@ -196,6 +206,11 @@ function dul_hours_edit_library($form, &$form_state, $library) {
 		'#description' => t('Enter the calendar identifier from Google.  Used when fetching hours data.'),
 		'#default_value' => $library->google_cal_id,
 	);
+	$form['expose_block'] = array(
+		'#type' => 'checkbox',
+		'#title' => t('Expose <em>Upcoming Days</em> Block for this calendar'),
+		'#default_value' => in_array($library->library_id, $dul_hours_cal_blocks) ? 1 : 0,
+	);
 	$form['actions'] = array(
 		'#type' => 'actions',
 	);
@@ -217,6 +232,13 @@ function dul_hours_edit_library_submit($form, $form_state) {
 	$o->library_name = decode_entities(check_plain($form_state['values']['library_name']));
 	if (drupal_write_record('duke_cal_library', $o, 'lid')) {
 		drupal_set_message(t('The Library/Google Calendar Mapping has been saved'));
+		
+		$dul_hours_cal_blocks = variable_get('dul_hours.upcoming_days_block', array());
+		if (!in_array($form_state['values']['library_id'], $dul_hours_cal_blocks)) {
+			$dul_hours_cal_blocks[] = $form_state['values']['library_id'];
+		}
+		variable_set('dul_hours.upcoming_days_block', $dul_hours_cal_blocks);
+		
 	} else {
 		drupal_set_message(t('Unable to save Library/Google Calendar Mapping'), 'error');
 	}
