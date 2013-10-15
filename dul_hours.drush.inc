@@ -30,7 +30,7 @@ function dul_hours_drush_command() {
 			'drush dhr --num-events=7' => 'Fetch 7 Google Calendar events from site\'s default library.',
 		),
 		'aliases' => array('dhr','hours'),
-		'bootstrap' => DRUSH_BOOTSTRAP_FULL,
+		'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
 	);
 
 	return $items;
