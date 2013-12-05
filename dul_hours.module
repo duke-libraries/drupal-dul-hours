@@ -146,11 +146,11 @@ function dul_hours_block_info() {
 	foreach ($dul_hours_cal_blocks as $library_id) {
 		$blocks['upcoming_days-' . $library_id] = array(
 			'info' => t('Hours for Upcoming Days (' . $library_id . ')'),
-			'cache' => DRUPAL_CACHE_PER_PAGE,
+			'cache' => DRUPAL_CACHE_GLOBAL,
 		);
 		$blocks['single_day-' . $library_id] = array(
 			'info'				=> t('Hours for Single Day (' . $library_id . ')'),
-			'cache'				=> DRUPAL_CACHE_PER_PAGE,
+			'cache'				=> DRUPAL_CACHE_GLOBAL,
 		);
 	}
 	return $blocks;
@@ -304,8 +304,10 @@ function dul_hours_block_view($delta='') {
 
 		$result = _dul_hours_fetch_hours_events($library_id, $start_date, $days_to_fetch);
 		$eventItems = array();
-		foreach($result->items as $item) {
-			$eventItems[] = dul_hours_create_hours_record($library_id, $item);
+		if (isset($result->items)) {
+			foreach($result->items as $item) {
+				$eventItems[] = dul_hours_create_hours_record($library_id, $item);
+			}
 		}
 
 		// create the theme data array
@@ -320,8 +322,10 @@ function dul_hours_block_view($delta='') {
 			// fetch the public hours -- need to get the 'public google_calendar_id, first
 			$result = _dul_hours_fetch_hours_events('public', $start_date, $days_to_fetch);
 			$publicEventItems = array();
-			foreach($result->items as $item) {
-				$publicEventItems[] = dul_hours_create_hours_record('public', $item);
+			if (isset($result->items)) {
+				foreach($result->items as $item) {
+					$publicEventItems[] = dul_hours_create_hours_record('public', $item);
+				}
 			}
 			$theme_data['public_items'] = $publicEventItems;
 		}
@@ -540,7 +544,9 @@ function _dul_hours_fetch_hours_events($library, $start_date, $num_events) {
 		$events = dul_hours_fetch_events($record->google_cal_id, $service, $start_date, $num_events);
 	} catch(Exception $fetchException) {
 		// send a mail to a revelant listserv.
-		drupal_set_message($fetchException->getMessage(), 'error');
+		// drupal_set_message('fetch_hours_event', 'error');
+		// drupal_set_message($fetchException->getMessage(), 'error');
+		return $events;
 	}
 	// dpm($events);
 	return $events;
