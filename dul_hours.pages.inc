@@ -17,6 +17,7 @@ function dul_hours_table_page($form, &$form_state) {
 		'uarchives' => -9,
 	);
 	
+	return '';
 	require_once drupal_get_path('module', 'dul_hours') . '/dul_hours.calendar.inc';
 	
 	// ROADMAP:
