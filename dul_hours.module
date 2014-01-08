@@ -60,7 +60,8 @@ function dul_hours_menu() {
 		'access callback' => TRUE,
 	);
 	$items['about/hours/%dul_hours_library'] = array(
-		'title' => 'Duke University Library Hours',
+		'title callback' => 'dul_hours_calendar_title',
+		'title arguments' => array(2),
 		'page callback' => 'drupal_get_form',
 		'page arguments' => array('dul_hours_calendar_page', 2),
 		'access callback' => TRUE,
@@ -75,7 +76,13 @@ function dul_hours_menu() {
 function dul_hours_theme($existing, $type, $theme, $path) {
 	return array(
 		'hours_block' => array(
-			'variables' => array('items' => NULL, 'public_items' => NULL, 'library_id' => NULL),
+			'variables' => array(
+				'items' => NULL, 
+				'public_items' => NULL, 
+				'library_id' => NULL,
+				'bottomlink_title' => FALSE,
+				'bottomlink_url' => FALSE,
+			),
 		),
 		'hours_block_day' => array(
 			'variables' => array('item' => NULL, 'public_item' => NULL),
@@ -123,6 +130,7 @@ function dul_hours_cron() {
  *	- upcoming days
  */
 function dul_hours_block_info() {
+	/*
 	$blocks['single_day'] = array(
 		'info'				=> t('Hours for Single Day'),
 		'cache'				=> DRUPAL_CACHE_PER_USER,
@@ -133,15 +141,16 @@ function dul_hours_block_info() {
 		'cache'				=> DRUPAL_CACHE_PER_USER,
 		'visibility'	=> 0,
 	);
+	*/
 	$dul_hours_cal_blocks = variable_get('dul_hours.upcoming_days_block', array());
 	foreach ($dul_hours_cal_blocks as $library_id) {
 		$blocks['upcoming_days-' . $library_id] = array(
 			'info' => t('Hours for Upcoming Days (' . $library_id . ')'),
-			'cache' => DRUPAL_CACHE_PER_USER,
+			'cache' => DRUPAL_CACHE_GLOBAL,
 		);
 		$blocks['single_day-' . $library_id] = array(
 			'info'				=> t('Hours for Single Day (' . $library_id . ')'),
-			'cache'				=> DRUPAL_CACHE_PER_USER,
+			'cache'				=> DRUPAL_CACHE_GLOBAL,
 		);
 	}
 	return $blocks;
@@ -154,52 +163,80 @@ function dul_hours_block_configure($delta) {
 	$form = array();
 
 	$delta_parts = explode('-', $delta);
+	$library_id = isset($delta_parts[1]) ? $delta_parts[1] : '';
 	
 	switch ($delta_parts[0]) {
-	case 'upcoming_days':
-		$libraries = dul_hours_get_libraries(TRUE);	// exclude PUBLIC library hours
-		$library_options = array();
-		foreach ($libraries as $library) {
-			$library_options[$library->library_id] = $library->library_name;
-		}
-		$form['upcoming_days_library'] = array(
-			'#type'					=> 'select',
-			'#title'				=> t('Display Hours for this Library'),
-			'#options'			=> $library_options,
-			//'#default_value'	=> variable_get('upcoming_days_library'),
-			'#default_value' => $delta_parts[1],
-		);
-		$form['upcoming_days_display_public'] = array(
-			'#type'					=> 'checkbox',
-			'#title'				=> t('Display the <strong>Duke Library Public Hours</strong> in this block'),
-			'#default_value'=> variable_get('upcoming_days_display_public', 0),
-			'#states'				=> array(
-				'visible'	=> array(
-					':input[name=upcoming_days_library]' => array('value' => t('perkins')),
+		case 'upcoming_days':
+			$libraries = dul_hours_get_libraries(TRUE);	// exclude PUBLIC library hours
+			$library_options = array();
+			foreach ($libraries as $library) {
+				$library_options[$library->library_id] = $library->library_name;
+			}
+			$form['dul_hours_block'] = array(
+				'#type' => 'fieldset',
+				'#title' => t('Hours Block Settings'),
+				'#collapsible' => FALSE,
+			);
+			$form['dul_hours_block']['upcoming_days_library'] = array(
+				'#type'					=> 'select',
+				'#title'				=> t('Display Hours for this Library'),
+				'#options'			=> $library_options,
+				//'#default_value'	=> variable_get('upcoming_days_library'),
+				'#default_value' => $library_id,
+			);
+			$form['dul_hours_block']['upcoming_days_display_public'] = array(
+				'#type'					=> 'checkbox',
+				'#title'				=> t('Display the <strong>Duke Library Public Hours</strong> in this block'),
+				'#default_value'=> variable_get('upcoming_days_display_public', 0),
+				'#states'				=> array(
+					'visible'	=> array(
+						':input[name=upcoming_days_library]' => array('value' => t('perkins')),
+					),
 				),
-			),
-		);
-		$form['upcoming_days_count'] = array(
-			'#type'	 				=> 'textfield',
-			'#title'				=> t('Configure the number of days to display'),
-			'#size'					=> 4,
-			'#description'	=> t('Enter the number of days that will appear in the block.'),
-			'#default_value'	=> variable_get('upcoming_days_count_' . $delta_parts[1], 4),
-			'#required' => TRUE,
-		);
-		$start_options = array(
-			'current_day' => t('Current Day'),
-			'sunday' => t('Sunday - first day of week'),
-			'monday' => t('Monday - first day of work week'),
-		);
-		$form['upcoming_days_start_date'] = array(
-			'#type'					=> 'select',
-			'#title'				=> t('First day to display'),
-			'#description'	=> t('Determine what day appears first in the block display.'),
-			'#options'			=> $start_options,
-			'#default_value'	=> variable_get('upcoming_days_start_date_' . $delta_parts[1], 'current_day'),
-		);
-		break;
+			);
+			$form['dul_hours_block']['upcoming_days_count'] = array(
+				'#type'	 				=> 'textfield',
+				'#title'				=> t('Configure the number of days to display'),
+				'#size'					=> 4,
+				'#description'	=> t('Enter the number of days that will appear in the block.'),
+				'#default_value'	=> variable_get('upcoming_days_count_' . $library_id, 4),
+				'#required' => TRUE,
+			);
+			$start_options = array(
+				'current_day' => t('Current Day'),
+				'sunday' => t('Sunday - first day of week'),
+				'monday' => t('Monday - first day of work week'),
+			);
+			$form['dul_hours_block']['upcoming_days_start_date'] = array(
+				'#type'					=> 'select',
+				'#title'				=> t('First day to display'),
+				'#description'	=> t('Determine what day appears first in the block display.'),
+				'#options'			=> $start_options,
+				'#default_value'	=> variable_get('upcoming_days_start_date_' . $library_id, 'current_day'),
+			);
+			$form['dul_hours_block']['bottom_link'] = array(
+				'#type' => 'fieldset',
+				'#collapsible' => TRUE,
+				'#collapsed' => FALSE,
+				'#title' => t('Bottom Link Title and URL Settings'),
+			);
+			$form['dul_hours_block']['bottom_link']['bottom_link_title'] = array(
+				'#type' => 'textfield',
+				'#size' => 50,
+				'#description' => t('Text that appears under the hours display -- e.g. <em>"Hours by Month"</em>'),
+				'#default_value' => variable_get('upcoming_days_bottomlink_title_' . $library_id, 'Hours by Month'),
+			);
+			$form['dul_hours_block']['bottom_link']['bottom_link_url'] = array(
+				'#type' => 'textfield',
+				'#size' => 50,
+				'#description' => t('URL for the above title -- e.g. <em>about/hours/perkins</em>'),
+				'#default_value' => variable_get('upcoming_days_bottomlink_url_' . $library_id, '/about/hours/' . $library_id),
+			);
+
+			break;
+			
+		case 'variable':
+			break;
 	}
 	return $form;
 }
@@ -209,10 +246,16 @@ function dul_hours_block_configure($delta) {
  */
 function dul_hours_block_save($delta = '', $edit = array()) {
 	$delta_parts = explode('-', $delta);
+	$library_id = isset($delta_parts[1]) ? $delta_parts[1] : '';
+	
 	switch ($delta_parts[0]) {
 		case 'upcoming_days':
-			variable_set('upcoming_days_count_' . $delta_parts[1], (int)$edit['upcoming_days_count']);
-			variable_set('upcoming_days_start_date_' . $delta_parts[1], $edit['upcoming_days_start_date']);
+			if (!empty($library_id)) {
+				variable_set('upcoming_days_count_' . $library_id, (int)$edit['upcoming_days_count']);
+				variable_set('upcoming_days_start_date_' . $library_id, $edit['upcoming_days_start_date']);
+				variable_set('upcoming_days_bottomlink_url_' . $library_id, $edit['bottom_link_url']);
+				variable_set('upcoming_days_bottomlink_title_' . $library_id, $edit['bottom_link_title']);
+			}
 			
 			if ($edit['upcoming_days_library'] == 'perkins') {
 				variable_set('upcoming_days_display_public', $edit['upcoming_days_display_public']);
@@ -230,20 +273,21 @@ function dul_hours_block_save($delta = '', $edit = array()) {
  */
 function dul_hours_block_view($delta='') {
 	$delta_parts = explode('-', $delta);
+	$library_id = '';
 	
 	switch ($delta_parts[0]) {
 
 	case 'upcoming_days':
 		if (count($delta_parts) == 1) {
-			$library = variable_get('dul_hours.default_library', 'perkins');
+			$library_id = variable_get('dul_hours.default_library', 'perkins');
 			$days_to_fetch = (int) variable_get('upcoming_days_count');
 			$upcoming_start_date = variable_get('upcoming_days_start_date', 'current_day');
 		} else {
-			$library = $delta_parts[1];
+			$library_id = $delta_parts[1];
 			$days_to_fetch = (int) variable_get('upcoming_days_count_' . $delta_parts[1]);
 			$upcoming_start_date = variable_get('upcoming_days_start_date_' . $delta_parts[1], 'current_day');
 		} 
-		$library_record = dul_hours_library_load($library);
+		$library_record = dul_hours_library_load($library_id);
 		
 		$display_public_hours = variable_get('upcoming_days_display_public');
 		switch ($upcoming_start_date) {
@@ -258,25 +302,36 @@ function dul_hours_block_view($delta='') {
 				break;
 		}
 
-		$result = _dul_hours_fetch_hours_events($library, $start_date, $days_to_fetch);
+		$result = _dul_hours_fetch_hours_events($library_id, $start_date, $days_to_fetch);
 		$eventItems = array();
-		foreach($result->items as $item) {
-			$eventItems[] = dul_hours_create_hours_record($library, $item);
+		if (isset($result->items)) {
+			foreach($result->items as $item) {
+				$eventItems[] = dul_hours_create_hours_record($library_id, $item);
+			}
 		}
 
 		// create the theme data array
-		$theme_data = array('items' => $eventItems, 'library_id' => $delta_parts[1]);
+		$theme_data = array('items' => $eventItems, 'library_id' => $library_id);
+		$bottomlink_title = variable_get('upcoming_days_bottomlink_title_' . $library_id, FALSE);
+		if ($bottomlink_title) {
+			$theme_data['bottomlink_title'] = $bottomlink_title;
+			$theme_data['bottomlink_url'] = variable_get('upcoming_days_bottomlink_url_' . $library_id, '/about/hours');
+		}
 
 		if ($display_public_hours) {
 			// fetch the public hours -- need to get the 'public google_calendar_id, first
 			$result = _dul_hours_fetch_hours_events('public', $start_date, $days_to_fetch);
 			$publicEventItems = array();
-			foreach($result->items as $item) {
-				$publicEventItems[] = dul_hours_create_hours_record('public', $item);
+			if (isset($result->items)) {
+				foreach($result->items as $item) {
+					$publicEventItems[] = dul_hours_create_hours_record('public', $item);
+				}
 			}
 			$theme_data['public_items'] = $publicEventItems;
 		}
-		$block['content'] = '<h3>' . $library_record->library_name . ' Hours</h3>' . theme('hours_block', $theme_data);
+		#$block['content'] = '<h3>' . $library_record->library_name . ' Hours</h3>' . theme('hours_block', $theme_data);
+		$block['content'] = theme('hours_block', $theme_data);
+		
 		// with that library information, fetch the days for display
 		
 		// $library = variable_get('dul_hours.default_library', 'PERKINS');
@@ -291,6 +346,7 @@ function dul_hours_block_view($delta='') {
 	return '';
 }
 
+
 /**
  * Default theme implementation for hours_block
  */
@@ -298,6 +354,8 @@ function theme_hours_block($vars) {
 	if (empty($vars['items'])) {
 		return '';
 	}
+	$library_id = $vars['library_id'];
+	
 	$output = '<div class="clearfix">';
 	if (!empty($vars['public_items'])) {
 		for ($i = 0; $i < count($vars['items']); $i++) {
@@ -308,7 +366,11 @@ function theme_hours_block($vars) {
 			$output .= theme('hours_block_day', array('item' => $item));
 		}
 	}
-	$output .= '<div class="other"><a href="/about/hours/' . $vars['library_id'] . '">' . t('Hours by Month') . '</a>&nbsp;&raquo;</div>'; 
+	if ($vars['bottomlink_title']) {
+		$output .= '<div class="other">' . l(t($vars['bottomlink_title']), $vars['bottomlink_url']) . '&nbsp;&raquo;</div>';	
+	} else {
+		$output .= '<div class="other"><a href="/about/hours/' . $vars['library_id'] . '">' . t('Hours by Month') . '</a>&nbsp;&raquo;</div>'; 
+	}
 	$output .= '</div>';
 	return $output;
 }
@@ -346,6 +408,13 @@ function dul_hours_library_load($lid) {
 }
 
 /**
+ * Return title of Library (specifically for calendar page)
+ */
+function dul_hours_calendar_title($library) {
+	return $library->library_name . ' Hours';
+}
+
+/**
  * Return a title for the Library record (admin form purposes)
  */
 function dul_hours_library_get_title($library) {
@@ -377,7 +446,7 @@ function dul_hours_delete_hours($thru, $from_drush = FALSE) {
  * Creates an 'hours' object that can be stored in the database, 
  * or used in block content
  */
-function dul_hours_create_hours_record($library, $eventItem) {
+function dul_hours_create_hours_record($library, $eventItem, $target_month = NULL) {
 	$record = new stdClass();
 
 	//$record->lid = $library->lid;
@@ -439,6 +508,16 @@ function dul_hours_create_hours_record($library, $eventItem) {
 		$startDate = strtotime($eventItem->start->date);
 		$record->hours = $record->hours_encoded = $eventItem->summary;
 	}
+	if (!is_null($target_month) && $target_month != '') {
+		// if 'target_month' is an array, assume the first element is the month string
+		// and assuming the second element is the format string used for the date() function
+		if (is_array($target_month)) {
+			$record->thisMonth = ($target_month[0] == date($target_month[1], $record->timestamp));
+		} else {
+			// we'll default to the 'M' format string
+			$record->thisMonth = $target_month == date('M', $record->timestamp);
+		}
+	}
 	return $record;
 }
 
@@ -457,10 +536,18 @@ function _dul_hours_fetch_hours_events($library, $start_date, $num_events) {
 		$service = dul_hours_load_calendar_service();
 	} catch(Exception $exc) {
 		drupal_set_message($exc->getMessage(), 'error');
-		return NULL;
+		return array();
 	}
 
-	$events = dul_hours_fetch_events($record->google_cal_id, $service, $start_date, $num_events);
+	$events = array();
+	try {
+		$events = dul_hours_fetch_events($record->google_cal_id, $service, $start_date, $num_events);
+	} catch(Exception $fetchException) {
+		// send a mail to a revelant listserv.
+		// drupal_set_message('fetch_hours_event', 'error');
+		// drupal_set_message($fetchException->getMessage(), 'error');
+		return $events;
+	}
 	// dpm($events);
 	return $events;
 }

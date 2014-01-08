@@ -142,15 +142,25 @@ function dul_hours_calendar_page($form, &$form_state, $library) {
 	$saturday_time = $lastday_of_month + ((86400 * (7 - $delta_day)) - 1); // seven days in a week, yes?
 	
 	$weeks = array();
+	//dpm($week['first']);
+	//dpm($week['last']);
 	for ($i = $week['first']; $i <= $week['last']; $i++) {
+		// since, according to PHP's date() function, the first of a week is a Monday,
+		// it's possible for the last week to have a starting date beyond the target month
+		//if (date('M', $sunday_time) != date('M', $firstday_of_month)) {
+		//	break;	// we're done processing. 
+		//}
+
+
 		$events = dul_hours_fetch_events($library->google_cal_id, $service, $sunday_time, 7);
+
 		$calevents = array();
 		foreach($events->items as $eventItem) {
-			$hours_record = dul_hours_create_hours_record($library, $eventItem);
+			$hours_record = dul_hours_create_hours_record($library, $eventItem, date('M', $firstday_of_month));
 			$calevents[] = $hours_record;
 			// $row['data'][] = array('data' => $hours_record->hours, 'width' => '12%');
 		}
-		#kpr($calevents);
+		//kpr($calevents);
 		$weeks[] = $calevents;
 		$sunday_time += (86400 * 7);
 	}

@@ -36,6 +36,13 @@ function dul_hours_admin_settings() {
 		'#size' => 4,
 	);
 
+	$form['dul_hours_public_hours_news_url'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Public Hours/Card-Access Entry Points URL'),
+		'#description' => t('Relative URL to the page that explains public hours and card access'),
+		'#default_value' => variable_get('dul_hours.publichours_cardaccess_url', ''),
+	);
+	
 	$default_single_events = variable_get('dul_hours.default_single_events', TRUE) ? '1' : '0';
 	$form['dul_hours_default_single_events'] = array(
 		'#type' => 'checkbox',
@@ -65,6 +72,7 @@ function dul_hours_admin_settings() {
 function dul_hours_admin_settings_submit($form, $form_state) {
 	variable_set('dul_hours.default_library', $form_state['values']['dul_hours_default_library']);
 	variable_set('dul_hours.default_num_events', $form_state['values']['dul_hours_default_num_events']);
+	variable_set('dul_hours.publichours_cardaccess_url', $form_state['values']['dul_hours_public_hours_news_url']);
 }
 
 /**
