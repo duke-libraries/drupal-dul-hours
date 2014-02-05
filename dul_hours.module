@@ -270,10 +270,23 @@ function dul_hours_block_save($delta = '', $edit = array()) {
 
 /**
  * Implements hook_block_view()
+ * 
+ * RT #261591 -- auto-detect server name and return ''
+ * 							 when either DEV or PRE is in SERVER_NAME
+ * 							 OR -- when HTTP_PROXY value is present
  */
 function dul_hours_block_view($delta='') {
 	$delta_parts = explode('-', $delta);
 	$library_id = '';
+	
+	if (preg_match('/(pre|dev)/', $_SERVER['SERVER_NAME']) == 1) {
+		// will not be able to fetch data from Google due to proxy complictions
+		// exit quietly with an empty string
+		return array(
+			'content' => '<p>Unable to fetch Google Calendar data.</p>',
+			'subject' => t('Library Hours'),
+		);
+	}
 	
 	switch ($delta_parts[0]) {
 
