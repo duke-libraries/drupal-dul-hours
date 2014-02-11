@@ -97,6 +97,9 @@ function dul_hours_theme($existing, $type, $theme, $path) {
 			'template' => 'form--admin_library_default',
 			'path' => $path . '/templates',
 		),
+		'affiliate_hours' => array(
+			'template' => 'affiliate_hours',
+		),
 	);
 }
 

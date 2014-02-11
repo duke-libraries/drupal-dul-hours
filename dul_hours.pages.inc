@@ -5,6 +5,28 @@
  * table grid
  */
 function dul_hours_table_page($form, &$form_state) {
+
+	# RT 261619
+	# WebX request to add links to the professional school libraries
+	# @see affiliate_hours.tpl.php for default theme implementation
+	#
+	# set the weight to 100 to force to the bottom.
+	$form['affiliate_hours'] = array(
+		'#theme' => 'affiliate_hours',
+		'#weight' => 100
+	);
+		
+	// don't bother with Google API on dev and pre VMs 
+	// because of the proxy firewall.
+	if (preg_match('/(pre|dev)/', $_SERVER['SERVER_NAME']) == 1) {
+		// will not be able to fetch data from Google due to proxy complications
+		// exit quietly with an empty string
+		$form['no_load'] = array(
+			'#type' => 'markup',
+			'#markup' => '<p>' . t('Unable to fetch Google Calenar data in pre-production or development environment') . '</p>',
+		);
+		return $form;
+	}
 	
 	// TODO add 'weight' column to duke_cal_library table
 	$weight = array(
@@ -99,6 +121,7 @@ function dul_hours_table_page($form, &$form_state) {
 			'class' => array('table'),
 		),
 	);
+
 	$form['#submit'][] = 'dul_hours_table_page_submit';
 	return $form;
 }
