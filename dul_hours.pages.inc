@@ -190,8 +190,8 @@ function dul_hours_calendar_page($form, &$form_state, $library) {
 				// $row['data'][] = array('data' => $hours_record->hours, 'width' => '12%');
 			}
 
-			if (len($calevents) < 7) {
-				for ($i = 6; $i > len($calevents); $i--) {
+			if (sizeof($calevents) < 7) {
+				for ($i = 6; $i > sizeof($calevents); $i--) {
 					$emptyRec = new stdClass();
 					$emptyRec->emptyRecord = TRUE;
 					$calevents[] = $emptyRec;
