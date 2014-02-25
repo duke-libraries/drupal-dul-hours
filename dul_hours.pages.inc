@@ -165,43 +165,83 @@ function dul_hours_calendar_page($form, &$form_state, $library) {
 	$saturday_time = $lastday_of_month + ((86400 * (7 - $delta_day)) - 1); // seven days in a week, yes?
 	
 	$weeks = array();
-	//dpm($week['first']);
-	//dpm($week['last']);
-	for ($i = $week['first']; $i <= $week['last']; $i++) {
-		// since, according to PHP's date() function, the first of a week is a Monday,
-		// it's possible for the last week to have a starting date beyond the target month
-		//if (date('M', $sunday_time) != date('M', $firstday_of_month)) {
-		//	break;	// we're done processing. 
-		//}
+		
+	// don't bother with Google API on dev and pre VMs 
+	// because of the proxy firewall.
+	if (preg_match('/(pre|dev)/', $_SERVER['SERVER_NAME']) == 0) {
+		// will not be able to fetch data from Google due to proxy complications
+		// exit quietly with an empty string
 
-
-		$events = dul_hours_fetch_events($library->google_cal_id, $service, $sunday_time, 7);
-
-		$calevents = array();
-		foreach($events->items as $eventItem) {
-			$hours_record = dul_hours_create_hours_record($library, $eventItem, date('M', $firstday_of_month));
-			$calevents[] = $hours_record;
-			// $row['data'][] = array('data' => $hours_record->hours, 'width' => '12%');
+		//dpm($week['first']);
+		//dpm($week['last']);
+		for ($i = $week['first']; $i <= $week['last']; $i++) {
+			// since, according to PHP's date() function, the first of a week is a Monday,
+			// it's possible for the last week to have a starting date beyond the target month
+			//if (date('M', $sunday_time) != date('M', $firstday_of_month)) {
+			//	break;	// we're done processing. 
+			//}
+	
+			$events = dul_hours_fetch_events($library->google_cal_id, $service, $sunday_time, 7);
+	
+			$calevents = array();
+			foreach($events->items as $eventItem) {
+				$hours_record = dul_hours_create_hours_record($library, $eventItem, date('M', $firstday_of_month));
+				$calevents[] = $hours_record;
+				// $row['data'][] = array('data' => $hours_record->hours, 'width' => '12%');
+			}
+			//kpr($calevents);
+			$weeks[] = $calevents;
+			$sunday_time += (86400 * 7);
 		}
-		//kpr($calevents);
-		$weeks[] = $calevents;
-		$sunday_time += (86400 * 7);
 	}
 
-	$table = theme('library_calendar', array('library' => $library, 'weeks' => $weeks));
-	//$render = render($table);
+	# set the 'time_next' to the first day of the next month.
+	$time_next = mktime(0, 0, 0, intval(date('n', $lastday_of_month)) + 1, 1, date('Y', $lastday_of_month));
+	
+	# set the 'time_prev' to the first day of the previous month
+	$time_prev = mktime(0, 0, 0, intval(date('n', $firstday_of_month)) - 1, 1, date('Y', $firstday_of_month));
 
-	$render['library_calendar'] = array(
+	$form['date_string'] = array(
+		'#type' => 'markup',
+		'#markup' => '<h3>' . t(date('F Y', $now)) . '</h3>',
+	);
+	$form['time_previous'] = array(
+		'#type' => 'hidden',
+		'#value' => $time_prev,
+	);
+	$form['time_next'] = array(
+		'#type' => 'hidden',
+		'#value' => $time_next,
+	);
+	$form['navigation'] = array(
+		'#type' => 'container',
+	);
+	$form['navigation']['prev'] = array(
+		'#type' => 'submit',
+		'#value' => t('<< Prev'),
+		'#suffix' => '&nbsp;',
+	);
+	$form['navigation']['next'] = array(
+		'#type' => 'submit',
+		'#value' => t('Next >>'),
+	);
+	$form['library_calendar'] = array(
 		'#theme' => 'library_calendar',
 		'#library' => $library,
+		
 		'#weeks' => $weeks,
 	);
 
-	return $render;
+	return $form;
 }
 
 function dul_hours_calendar_page_submit($form, &$form_state) {
-	
+	if ($form_state['values']['op'] == 'Next >>') {
+		$form_state['starttime'] = $form_state['values']['time_next'];
+	} else if ($form_state['values']['op'] == '<< Prev') {
+		$form_state['starttime'] = $form_state['values']['time_previous'];
+	}
+	$form_state['rebuild'] = TRUE;
 }
 
 function theme_library_calendar($variables) {
@@ -216,5 +256,5 @@ function theme_library_calendar($variables) {
 		}
 		$rows[] = $row;
 	}
-	return render(theme('table', array('header' => $header, 'rows' => $rows)));
+	return render(theme('table', array('header' => $header, 'rows' => $rows, 'empty' => t('Unable to fetch Google Calendar data.'))));
 }
