@@ -189,6 +189,15 @@ function dul_hours_calendar_page($form, &$form_state, $library) {
 				$calevents[] = $hours_record;
 				// $row['data'][] = array('data' => $hours_record->hours, 'width' => '12%');
 			}
+
+			if (len($calevents) < 7) {
+				for ($i = 6; $i > len($calevents); $i--) {
+					$emptyRec = new stdClass();
+					$emptyRec->emptyRecord = TRUE;
+					$calevents[] = $emptyRec;
+				}
+			}
+
 			//kpr($calevents);
 			$weeks[] = $calevents;
 			$sunday_time += (86400 * 7);
@@ -252,7 +261,11 @@ function theme_library_calendar($variables) {
 	foreach ($weeks as $week) {
 		$row = array('data' => array());
 		foreach ($week as $event) {
-			$row['data'][] = $event->libraryDate['dateStr'] . '<br />' . $event->hours;
+			if (!isset($week->emptyRecord)) {
+				$row['data'][] = $event->libraryDate['dateStr'] . '<br />' . $event->hours;
+			} else {
+				$row['data'][] = '';
+			}
 		}
 		$rows[] = $row;
 	}
