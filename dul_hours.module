@@ -121,7 +121,7 @@ function dul_hours_theme($existing, $type, $theme, $path) {
 			
 			// This tells the Drupal rendering engine what variables to pass to the template 	
 			'variables' => array(
-				'google-cal-id' => NULL,
+				'google_cal_id' => NULL,
 			), 
 		),
 	);

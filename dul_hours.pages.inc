@@ -158,7 +158,7 @@ function dul_hours_calendar_google($library) {
 	// to be used to render the element
 	$page['goog-calender'] = array(
 		'#theme' => 'google-calendar',		// this theme needs to be defined in dul_hours_theme()
-		'#google-cal-id' => $library->google_cal_id,		// 'google_cal_id
+		'#google_cal_id' => $library->google_cal_id,		// 'google_cal_id
 	);
 	
 	// FINAL STEP -- return the page array back to the Drupal rendering engine.
