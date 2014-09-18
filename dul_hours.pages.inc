@@ -136,6 +136,37 @@ function dul_hours_table_page_submit($form, &$form_state) {
 }
 
 /**
+ * Page callback for calender page 
+ * that displays a Google calendar widget
+ * @param stdClass $library - object containing information about the library
+ * 
+ */
+function dul_hours_calendar_google($library) {
+	// PREAMBLE: The $library object is already loaded from the database.
+	// see the entry in dul_hours_menu for 'about/hours/%dul_hours_library'
+	// the %dul_hours_library slug causes Drupal to look for an "autoload" function 
+	// by the name of 'dul_hours_library_load' -- that function is in dul_hours.module.
+	
+	// STEP ONE -- create a "page" array containing elements that are 
+	// to be 'rendered' by Drupal's rendering engine.
+	// Best practice is to avoid returning HTML
+	$page = array();
+	
+	// STEP TWO -- add an element to the page array that
+	// will represent the Google calendar widget
+	// Use the #theme property/array key to specify the theme
+	// to be used to render the element
+	$page['goog-calender'] = array(
+		'#theme' => 'google-calendar',		// this theme needs to be defined in dul_hours_theme()
+		'#google-cal-id' => $library->google_cal_id,		// 'google_cal_id
+	);
+	
+	// FINAL STEP -- return the page array back to the Drupal rendering engine.
+	// Drupal will makes sure the appropriate template file or function is called.
+	return $page;
+}
+
+/**
  * Display the hours for a single library in a calendar table view
  * TODO: Investigate leveraging the Views module for this.
  */

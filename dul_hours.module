@@ -67,6 +67,15 @@ function dul_hours_menu() {
 		'access callback' => TRUE,
 		'file' => 'dul_hours.pages.inc',
 	);
+	// UNCOMMENT THIS BLOCK and COMMENT OUT the 8 lines above this line.
+	#$items['about/hours/%dul_hours_library'] = array(
+	#	'title callback' => 'dul_hours_calendar_title',	// a function that provides a dynamic title for the page
+	#	'title arguments' => array(2),
+	#	'page callback' => 'dul_hours_calendar_google',
+	#	'page arguments' => array(2),
+	#	'access callback' => TRUE,
+	#	'file' => 'dul_hours.pages.inc',
+	#);
 	return $items;
 }
 
@@ -99,6 +108,19 @@ function dul_hours_theme($existing, $type, $theme, $path) {
 		),
 		'affiliate_hours' => array(
 			'template' => 'affiliate_hours',
+		),
+		
+		// NEW THEME definition to support the google calendar widget implementation
+		'google-calendar' => array(
+			// this means a file named 'google-calendar.tpl.php 
+			// will be used if no other implementation exists
+			'template' => 'google-calender',	
+			'path' => $path . '/templates',
+			
+			// This tells the Drupal rendering engine what variables to pass to the template 	
+			'variables' => array(
+				'google-cal-id' => NULL,
+			), 
 		),
 	);
 }
