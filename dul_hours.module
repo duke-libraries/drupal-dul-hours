@@ -59,6 +59,8 @@ function dul_hours_menu() {
 		'file' => 'dul_hours.pages.inc',
 		'access callback' => TRUE,
 	);
+	// Below is the current menu routing for:
+	// http://library.duke.edu/about/hours/<lib_id>, where lib_id is one of 'perkins', 'rubenstein', etc
 	$items['about/hours/%dul_hours_library'] = array(
 		'title callback' => 'dul_hours_calendar_title',
 		'title arguments' => array(2),
@@ -67,7 +69,7 @@ function dul_hours_menu() {
 		'access callback' => TRUE,
 		'file' => 'dul_hours.pages.inc',
 	);
-	// UNCOMMENT THIS BLOCK and COMMENT OUT the 8 lines above this line.
+	// NEW MENU ROUTING -- UNCOMMENT THIS BLOCK (below) and COMMENT OUT the 8 lines above this line ^.
 	#$items['about/hours/%dul_hours_library'] = array(
 	#	'title callback' => 'dul_hours_calendar_title',	// a function that provides a dynamic title for the page
 	#	'title arguments' => array(2),
