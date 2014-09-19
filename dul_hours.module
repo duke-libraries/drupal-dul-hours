@@ -61,23 +61,24 @@ function dul_hours_menu() {
 	);
 	// Below is the current menu routing for:
 	// http://library.duke.edu/about/hours/<lib_id>, where lib_id is one of 'perkins', 'rubenstein', etc
+	#$items['about/hours/%dul_hours_library'] = array(
+		#'title callback' => 'dul_hours_calendar_title',
+		#'title arguments' => array(2),
+		#'page callback' => 'drupal_get_form',
+		#'page arguments' => array('dul_hours_calendar_page', 2),
+		#'access callback' => TRUE,
+		#'file' => 'dul_hours.pages.inc',
+	#);
+	
+	// NEW MENU ROUTING -- UNCOMMENT THIS BLOCK (below) and COMMENT OUT the 8 lines above this line ^.
 	$items['about/hours/%dul_hours_library'] = array(
-		'title callback' => 'dul_hours_calendar_title',
+		'title callback' => 'dul_hours_calendar_title',	// a function that provides a dynamic title for the page
 		'title arguments' => array(2),
-		'page callback' => 'drupal_get_form',
-		'page arguments' => array('dul_hours_calendar_page', 2),
+		'page callback' => 'dul_hours_calendar_google',
+		'page arguments' => array(2),
 		'access callback' => TRUE,
 		'file' => 'dul_hours.pages.inc',
 	);
-	// NEW MENU ROUTING -- UNCOMMENT THIS BLOCK (below) and COMMENT OUT the 8 lines above this line ^.
-	#$items['about/hours/%dul_hours_library'] = array(
-	#	'title callback' => 'dul_hours_calendar_title',	// a function that provides a dynamic title for the page
-	#	'title arguments' => array(2),
-	#	'page callback' => 'dul_hours_calendar_google',
-	#	'page arguments' => array(2),
-	#	'access callback' => TRUE,
-	#	'file' => 'dul_hours.pages.inc',
-	#);
 	return $items;
 }
 
@@ -116,7 +117,7 @@ function dul_hours_theme($existing, $type, $theme, $path) {
 		'google-calendar' => array(
 			// this means a file named 'google-calendar.tpl.php 
 			// will be used if no other implementation exists
-			'template' => 'google-calender',	
+			'template' => 'google-calendar',	
 			'path' => $path . '/templates',
 			
 			// This tells the Drupal rendering engine what variables to pass to the template 	
