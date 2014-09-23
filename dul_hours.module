@@ -111,6 +111,7 @@ function dul_hours_theme($existing, $type, $theme, $path) {
 		),
 		'affiliate_hours' => array(
 			'template' => 'affiliate_hours',
+			'variables' => array(),
 		),
 		
 		// NEW THEME definition to support the google calendar widget implementation
