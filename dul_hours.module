@@ -175,11 +175,11 @@ function dul_hours_block_info() {
 	foreach ($dul_hours_cal_blocks as $library_id) {
 		$blocks['upcoming_days-' . $library_id] = array(
 			'info' => t('Hours for Upcoming Days (' . $library_id . ')'),
-			'cache' => DRUPAL_CACHE_GLOBAL,
+			'cache' => DRUPAL_NO_CACHE,
 		);
 		$blocks['single_day-' . $library_id] = array(
 			'info'				=> t('Hours for Single Day (' . $library_id . ')'),
-			'cache'				=> DRUPAL_CACHE_GLOBAL,
+			'cache'				=> DRUPAL_NO_CACHE,
 		);
 	}
 	return $blocks;
