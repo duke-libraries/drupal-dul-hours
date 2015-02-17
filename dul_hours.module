@@ -517,6 +517,7 @@ function dul_hours_create_hours_record($library, $eventItem, $target_month = NUL
 	if (preg_match('/^(lilly|public|rubenstein|perkins|music):/i', $eventItem->summary) == 1) {
 		$record->hours = preg_replace('/^(lilly|public|rubenstein|perkins|music): /i', '', $eventItem->summary);
 		$record->hours_encoded = str_replace('-', ' &ndash; ', $record->hours);
+		$record->hours_encoded = str_replace(array('open','hours'), array('Open','Hours'), $record->hours_encoded);
 		$record->allDay = preg_match('/24 hours/i', $record->hours) == 1;
 	} elseif (preg_match('/closed/i', $eventItem->summary) == 1) {
 		$record->hours = $record->hours_encoded = 'CLOSED';
@@ -546,9 +547,9 @@ function dul_hours_create_hours_record($library, $eventItem, $target_month = NUL
 			$record->hours_encoded = sprintf("%s &ndash; %s", $_start, $_end);
 		}
 	} else {
-		// we have a date (no, not with a girl, but a date string)
+		// we have a date string
 		$startDate = strtotime($eventItem->start->date);
-		$record->hours = $record->hours_encoded = $eventItem->summary;
+		$record->hours = $record->hours_encoded = str_replace(array('open','hours'), array('Open','Hours'), $eventItem->summary);
 	}
 	if (!is_null($target_month) && $target_month != '') {
 		// if 'target_month' is an array, assume the first element is the month string
