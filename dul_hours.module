@@ -564,6 +564,38 @@ function dul_hours_create_hours_record($library, $eventItem, $target_month = NUL
 	return $record;
 }
 
+/**
+ * Implements hook_dul_calendar_hours_elements
+ *
+ */
+function dul_hours_dul_calendar_hours_elements($dateArray, $context = FALSE) {
+	global $conf;
+	static $calendar_service;
+	if (!isset($calendar_service)) {
+		require_once drupal_get_path('module', 'dul_hours') . '/dul_hours.calendar.inc';
+		$calendar_service = dul_hours_load_calendar_service();
+	}
+	static $library;
+	if (!$library) {
+		$library = dul_hours_library_load($conf['library_id']);
+	}
+
+	$elements = array();
+	$events = dul_hours_fetch_events($library->google_cal_id, $calendar_service, $dateArray[0], 1);
+	foreach ($events->items as $eventItem) {
+		$o = dul_hours_create_hours_record(FALSE, $eventItem, FALSE);
+		$elements[] = array(
+			'#type' => 'container',
+			'#attributes' => array('style' => 'margin-bottom: 1em'),
+			'event-' . $o->timestamp => array(
+				'#markup' => '<small>' . $o->hours_encoded . '</small>',
+			),
+		);
+		#dpm($o);
+	}
+	return $elements;
+}
+
 /******** PRIVATE FUNCTIONS ***********/
 function _dul_hours_fetch_hours_events($library, $start_date, $num_events) {
 	$result = db_query('SELECT google_cal_id FROM {duke_cal_library} WHERE library_id = :library',
